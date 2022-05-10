@@ -75,6 +75,7 @@ jobs:
           commit: true
 
   test:
+    if: needs.setup.outputs.pullrequest  == 'true'
     name: Test Builds
     runs-on: ubuntu-latest
     needs: [setup]
@@ -82,10 +83,6 @@ jobs:
       - if: needs.setup.outputs.up_version  == 'true'
         run: |
           echo "::error file=library.json::Version not correct"
-          exit 1
-      - if: needs.setup.outputs.pullrequest  == 'false'
-        run: |
-          echo "::error file=library.json::Not a Pull Request"
           exit 1
       - uses: actions/checkout@v2
       - name: Cache pip
