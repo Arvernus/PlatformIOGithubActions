@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [setup]
     steps:
-      - if: needs.setup.outputs.up_version  == 'true'
+      - if: needs.setup.outputs.up_version  == 'true' || needs.setup.outputs.pullrequest  == 'false'
         run: |
           echo "::error file=library.json::Version not correct"
           exit 1
