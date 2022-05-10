@@ -8,6 +8,11 @@ on:
         default: false
         required: false
         type: boolean
+      testWithoutUploading:
+        description: "do test without upload of the test"
+        default: true
+        required: false
+        type: boolean
 
 jobs:
   setup:
@@ -100,7 +105,11 @@ jobs:
         if: ${{ inputs.platformioDevVersion }}
         run: pio upgrade --dev
       - name: Run PlatformIO Test
+        if: ${{ inputs.testWithoutUploading }}
         run: pio test --without-uploading
+      - name: Run PlatformIO Test
+        if: ${{ !(inputs.testWithoutUploading) }}
+        run: pio test
       - name: Validate lib json
         run: pio package pack
 
