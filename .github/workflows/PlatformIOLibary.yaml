@@ -2,6 +2,12 @@ name: CI
 
 on:
   workflow_call:
+    inputs:
+      platformioDevVersion:
+        description: "Should the Platformio Develperversion be used?"
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   setup:
