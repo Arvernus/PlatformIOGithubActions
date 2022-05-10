@@ -13,6 +13,11 @@ on:
         default: true
         required: false
         type: boolean
+      testVerbose:
+        description: "do test in verbose mode"
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   setup:
@@ -102,14 +107,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade platformio
       - name: Update PlatformIO to Developerversion
-        if: ${{ inputs.platformioDevVersion }}
+        if: ${{ inputs.platformioDevVersion}}
         run: pio upgrade --dev
       - name: Run PlatformIO Test
-        if: ${{ inputs.testWithoutUploading }}
+        if: ${{ inputs.testWithoutUploading && !(inputs.testVerbose) }}
         run: pio test --without-uploading
       - name: Run PlatformIO Test
-        if: ${{ !(inputs.testWithoutUploading) }}
+        if: ${{ !(inputs.testWithoutUploading) && !(inputs.testVerbose) }}
         run: pio test
+      - name: Run PlatformIO Test
+        if: ${{ inputs.testWithoutUploading && inputs.testVerbose}}
+        run: pio test --without-uploading -v
+      - name: Run PlatformIO Test
+        if: ${{ !(inputs.testWithoutUploading) && inputs.testVerbose }}
+        run: pio test -v
       - name: Validate lib json
         run: pio package pack
 
