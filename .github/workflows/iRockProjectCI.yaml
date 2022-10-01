@@ -43,13 +43,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade platformio
       - name: Create platformio.json
+        id: environment_file
         run: echo $(pio project config --json-output) >> platformio.json
       - name: get enviroments from file
         run: |
           echo "::set-output name=prop::$(pio project config --json-output | jq -cr '.[0][1][0][1]')"
       - name: Print variables
         run: |
-          echo ${{ steps.environment_file.outputs.prop }}
+          echo environments: ${{ steps.environment_file.outputs.prop }}
           echo version_tag: ${{ steps.version.outputs.version_tag }}
           echo version: ${{ steps.version.outputs.version }}
           echo up_version: ${{ steps.version.outputs.version != steps.version_file.outputs.prop}}
