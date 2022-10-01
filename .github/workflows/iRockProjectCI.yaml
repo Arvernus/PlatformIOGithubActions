@@ -3,13 +3,6 @@ name: CI
 on:
   workflow_call:
     inputs:
-      private:
-        default: true
-        required: false
-        type: boolean
-    secrets:
-      PLATFORMIO_AUTH_TOKEN:
-        required: true
 
 jobs:
   setup:
@@ -211,13 +204,3 @@ jobs:
             Archive/${{ github.event.repository.name }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: puplish to Platform.io
-        if: ${{ inputs.private }}
-        env:
-          PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
-        run: pio pkg publish --private --owner iRock --no-interactive Archive/${{ github.event.repository.name }}.tar.gz
-      - name: puplish to Platform.io
-        if: ${{ !inputs.private }}
-        env:
-          PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
-        run: pio pkg publish --owner iRock --no-interactive Archive/${{ github.event.repository.name }}.tar.gz
