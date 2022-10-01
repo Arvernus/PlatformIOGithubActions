@@ -45,16 +45,11 @@ jobs:
       - name: Create platformio.json
         run: echo $(pio project config --json-output) >> platformio.json
       - name: get enviroments from file
-        id: environment_file
-        uses: notiz-dev/github-action-json-property@release
-        with:
-          path: "platformio.json"
-          prop_path: ".[0][1][0][1]"
-
+        run: |
+          echo "::set-output name=prop::$(pio project config --json-output | jq -cr '.[0][1][0][1]')"
       - name: Print variables
         run: |
           echo ${{ steps.environment_file.outputs.prop }}
-          echo environments: $(pio project config --json-output | jq -cr '.[0][1][0][1]')
           echo version_tag: ${{ steps.version.outputs.version_tag }}
           echo version: ${{ steps.version.outputs.version }}
           echo up_version: ${{ steps.version.outputs.version != steps.version_file.outputs.prop}}
