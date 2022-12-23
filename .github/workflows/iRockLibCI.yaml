@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0 # nessesary to get version history
       - name: Get version
         id: version
-        uses: paulhatch/semantic-version@v5.0.0-alpha2
+        uses: paulhatch/semantic-version@v5.0.0
         with:
           search_commit_body: true
           branch: origin/main
