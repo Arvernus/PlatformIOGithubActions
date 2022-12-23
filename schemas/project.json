@@ -1,0 +1,127 @@
+{
+    "$id": "https://example.com/project.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "project.json schema",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "A name of a project.\nShould be slug style for simplicity, consistency, and compatibility. Example: HelloWorld\nCan contain a-z, digits, and dashes (but not start/end with them)\nConsecutive dashes and [:;/,@<>] chars are not allowed.",
+            "required": true
+        },
+        "version": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "A version of a current project source code. Can contain a-z, digits, dots or dash and should be Semantic Versioning compatible.",
+            "required": true
+        },
+        "description": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The field helps users to identify and search for your project with a brief description. Describe the hardware devices (sensors, boards and etc.) which are suitable with it.",
+            "required": true
+        },
+        "keywords": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "maxLength": 255
+                    }
+                }
+            ],
+            "description": "Used for search by keyword. Helps to make your project easier to discover without people needing to know its name.\nThe keyword should be lowercased, can contain a-z, digits and dash (but not start/end with them). A list from the keywords can be specified with separator , or declared as Array.",
+            "required": true
+        },
+        "homepage": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Home page of a project (if is different from repository url).",
+            "required": false
+        },
+        "repository": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": [
+                        "git",
+                        "hg",
+                        "svn"
+                    ],
+                    "description": "only “git”, “hg” or “svn” are supported"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "branch": {
+                    "type": "string",
+                    "description": "if is not specified, default branch will be used. This field will be ignored if tag/release exists with the value of version."
+                }
+            },
+            "description": "The repository in which the source code can be found.",
+            "required": false
+        },
+        "authors": {
+            "anyOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "required": true,
+                            "description": "Full name"
+                        },
+                        "email": {
+                            "type": "string"
+                        },
+                        "url": {
+                            "type": "string",
+                            "description": "An author’s contact page"
+                        },
+                        "maintainer": {
+                            "type": "boolean",
+                            "description": "Specify “maintainer” status"
+                        }
+                    }
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "required": true,
+                                "description": "Full name"
+                            },
+                            "email": {
+                                "type": "string"
+                            },
+                            "url": {
+                                "type": "string",
+                                "description": "An author’s contact page"
+                            },
+                            "maintainer": {
+                                "type": "boolean",
+                                "description": "Specify “maintainer” status"
+                            }
+                        }
+                    }
+                }
+            ],
+            "description": "An author contact information\nIf authors field is not defined, PlatformIO will try to fetch data from VCS provider (Github, Gitlab, etc) if repository is declared.",
+            "required": false
+        },
+        "license": {
+            "type": "string",
+            "description": "A SPDX license ID or SPDX Expression. You can check the full list of SPDX license IDs (see “Identifier” column).",
+            "required": false
+        }
+    }
+}
