@@ -53,10 +53,7 @@ jobs:
     needs: [setup]
     steps:
       - run: echo ${{needs.setup.outputs.up_version}}
-      - uses: actions/checkout@v2
-      - name: Get commit sha
-        run: |
-          echo "GITHUB_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
       - name: Modify library.json
         uses: maxgfr/actions-change-json@main
         with:
