@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # nessesary to get version history
       - name: Get version
@@ -17,7 +17,6 @@ jobs:
         uses: paulhatch/semantic-version@v5.0.0-alpha2
         with:
           search_commit_body: true
-          branch: origin/main
       - name: get version of file
         id: version_file
         uses: notiz-dev/github-action-json-property@release
@@ -69,7 +68,7 @@ jobs:
     needs: [setup]
     steps:
       - run: echo ${{needs.setup.outputs.up_version}}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Modify project.json
         uses: maxgfr/actions-change-json@main
         with:
@@ -84,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [setup]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Modify project.json
         if: ${{needs.setup.outputs.up_version}}
         uses: maxgfr/actions-change-json@main
@@ -121,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [setup]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Modify project.json
         if: ${{needs.setup.outputs.up_version}}
         uses: maxgfr/actions-change-json@main
