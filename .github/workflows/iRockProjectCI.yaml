@@ -62,7 +62,7 @@ jobs:
       pullrequest_end: ${{github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref =='main'}}
 
   up_version:
-    if: ${{needs.setup.outputs.up_version}}
+    if: ${{needs.setup.outputs.up_version == true}}
     name: Up Version in lib file
     runs-on: ubuntu-latest
     needs: [setup]
@@ -78,7 +78,7 @@ jobs:
           commit: true
 
   test:
-    if: ${{!needs.setup.outputs.up_version && needs.setup.outputs.pullrequest}}
+    if: ${{!needs.setup.outputs.up_version == true && needs.setup.outputs.pullrequest == true}}
     name: Test Builds
     runs-on: ubuntu-latest
     needs: [setup]
@@ -115,7 +115,7 @@ jobs:
         run: pio test
 
   build:
-    if: ${{needs.setup.outputs.pullrequest_end}}
+    if: ${{needs.setup.outputs.pullrequest_end == true}}
     name: Build Project
     runs-on: ubuntu-latest
     needs: [setup]
@@ -163,7 +163,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: ${{needs.setup.outputs.pullrequest_end}}
+    if: ${{needs.setup.outputs.pullrequest_end == true}}
     name: Create Release
     runs-on: ubuntu-latest
     needs: [setup, build]
