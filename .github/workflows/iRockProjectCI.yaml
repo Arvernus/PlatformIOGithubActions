@@ -78,7 +78,7 @@ jobs:
           commit: true
 
   test:
-    if: !needs.setup.outputs.up_version && needs.setup.outputs.pullrequest
+    if: (!needs.setup.outputs.up_version) && needs.setup.outputs.pullrequest
     name: Test Builds
     runs-on: ubuntu-latest
     needs: [setup]
