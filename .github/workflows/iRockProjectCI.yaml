@@ -62,8 +62,8 @@ jobs:
       pullrequest_end: ${{github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref =='main'}}
 
   up_version:
-    if: ${{needs.setup.outputs.up_version == true}}
-    name: Up Version in lib file
+    if: ${{needs.setup.outputs.up_version == "true"}}
+    name: Up Version in project file
     runs-on: ubuntu-latest
     needs: [setup]
     steps:
