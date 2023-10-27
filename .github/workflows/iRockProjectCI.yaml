@@ -77,12 +77,19 @@ jobs:
           commit: true
 
   test:
-    if: ${{ needs.setup.outputs.up_version == 'false'}}
     name: Test Builds
     runs-on: ubuntu-latest
     needs: [setup]
     steps:
       - uses: actions/checkout@v4
+      - name: Modify project.json
+        if: ${{ needs.setup.outputs.up_version == 'false'}}
+        uses: maxgfr/actions-change-json@main
+        with:
+          key: "version"
+          value: "${{ needs.setup.outputs.version }}"
+          path: project.json
+          commit: false
       - uses: actions/cache@v3
         with:
           path: |
