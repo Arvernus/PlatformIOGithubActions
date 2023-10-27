@@ -3,6 +3,8 @@ name: CI
 on:
   workflow_call:
 
+env:
+  PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
 jobs:
   setup:
     name: Setup CI
@@ -104,13 +106,9 @@ jobs:
           find test -name *.cpp
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
-        env:
-          PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
         run: pio test
       - name: Run PlatformIO Build instead of Test
         if: ${{steps.test_files.outputs.testfiles == ''}}
-        env:
-          PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
         run: pio run
 
   build:
@@ -136,8 +134,6 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
       - name: Build PlatformIO Project
-        env:
-          PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
         run: pio run -e ${{ matrix.environment }}
       - uses: actions/upload-artifact@v2
         with:
