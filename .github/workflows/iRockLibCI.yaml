@@ -90,7 +90,7 @@ jobs:
       - name: get test files
         id: test_files
         run: |
-          echo "::set-output name=testfiles::$(find test -name *.cpp)"
+          echo "testfiles=$(find test -name *.cpp)" >> $GITHUB_OUTPUT
           find test -name *.cpp
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
