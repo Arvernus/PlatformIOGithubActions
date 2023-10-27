@@ -72,6 +72,14 @@ jobs:
     needs: [setup]
     steps:
       - uses: actions/checkout@v4
+      - name: Modify library.json
+        if: ${{needs.setup.outputs.up_version == 'false'}}
+        uses: maxgfr/actions-change-json@main
+        with:
+          key: "version"
+          value: "${{ needs.setup.outputs.version }}"
+          path: library.json
+          commit: false
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -79,17 +87,17 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      - name: Cache PlatformIO
-        uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
-          path: ~/.platformio
-          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
-      - name: Set up Python
-        uses: actions/setup-python@v2
-      - name: Install PlatformIO
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade platformio
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
       - name: get test files
         id: test_files
         run: |
@@ -115,24 +123,17 @@ jobs:
           key: "version"
           value: "${{ needs.setup.outputs.version }}"
           path: library.json
-      - name: Cache pip
-        uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      - name: Cache PlatformIO
-        uses: actions/cache@v2
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v4
         with:
-          path: ~/.platformio
-          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
-      - name: Set up Python
-        uses: actions/setup-python@v2
-      - name: Install PlatformIO
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade platformio
+          python-version: '3.9'
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
       - name: Remove not used Files
         continue-on-error: true
         run: |
