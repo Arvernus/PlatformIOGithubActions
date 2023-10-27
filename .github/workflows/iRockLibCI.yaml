@@ -94,7 +94,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade platformio
+      - name: get test files
+        id: test_files
+        run: |
+          echo "::set-output name=testfiles::$(find test -name *.cpp)"
+          find test -name *.cpp
       - name: Run PlatformIO Test
+        if: ${{steps.test_files.outputs.testfiles != ''}}
         run: pio test
       - name: Validate lib json
         run: pio package pack
