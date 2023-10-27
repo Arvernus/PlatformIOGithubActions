@@ -82,10 +82,6 @@ jobs:
     name: Test Builds
     runs-on: ubuntu-latest
     needs: [setup]
-    strategy:
-      fail-fast: false
-      matrix:
-        environment: ${{ fromJSON(needs.setup.outputs.environments) }}
     steps:
       - uses: actions/checkout@v4
       - name: Cache pip
@@ -116,6 +112,9 @@ jobs:
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
         run: pio test
+      - name: Run PlatformIO Build instead of Test
+        if: ${{steps.test_files.outputs.testfiles == ''}}
+        run: pio run
 
   build:
     if: ${{ needs.setup.outputs.pullrequest_end == 'true'}}
@@ -128,39 +127,25 @@ jobs:
         environment: ${{ fromJSON(needs.setup.outputs.environments) }}
     steps:
       - uses: actions/checkout@v4
-      - name: Modify project.json
-        if: ${{needs.setup.outputs.up_version}}
-        uses: maxgfr/actions-change-json@main
+      - uses: actions/cache@v3
         with:
-          key: "version"
-          value: "${{ needs.setup.outputs.version }}"
-          path: project.json
-      - name: Cache pip
-        uses: actions/cache@v2
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      - name: Cache PlatformIO
-        uses: actions/cache@v2
-        with:
-          path: ~/.platformio
-          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
-      - name: Set up Python
-        uses: actions/setup-python@v2
-      - name: Install PlatformIO
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade platformio
-      - name: build release folder
-        run: |
-          pio package pack -o ${{ github.event.repository.name }}.tar.gz
+          python-version: '3.9'
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+      - name: Build PlatformIO Project
+        run: pio run -e ${{ matrix.environment }}
       - uses: actions/upload-artifact@v2
         with:
-          name: Archive
+          name: ${{ matrix.environment }}
           path: |
-            ${{ github.event.repository.name }}.tar.gz
+            .pio/build/${{ matrix.environment }}/firmware.elf
+            .pio/build/${{ matrix.environment }}/firmware.bin
           if-no-files-found: error
 
   release:
@@ -170,30 +155,12 @@ jobs:
     needs: [setup, build]
     steps:
       - uses: actions/download-artifact@v2
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      - name: Cache PlatformIO
-        uses: actions/cache@v2
-        with:
-          path: ~/.platformio
-          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
-      - name: Set up Python
-        uses: actions/setup-python@v2
-      - name: Install PlatformIO
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade platformio
       - name: Create release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.setup.outputs.version_tag }}
           generate_release_notes: true
           files: |
-            Archive/${{ github.event.repository.name }}.tar.gz
+            *
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
