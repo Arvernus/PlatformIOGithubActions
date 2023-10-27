@@ -83,7 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Modify project.json
-        if: ${{ needs.setup.outputs.up_version == 'false'}}
+        if: ${{ needs.setup.outputs.up_version == 'true'}}
         uses: maxgfr/actions-change-json@main
         with:
           key: "version"
