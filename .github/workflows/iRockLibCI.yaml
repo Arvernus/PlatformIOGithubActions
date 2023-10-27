@@ -54,8 +54,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [setup]
     steps:
-      - run: echo ${{needs.setup.outputs.up_version}}
-      - run: ls
       - uses: actions/checkout@v4
       - name: Modify library.json
         uses: maxgfr/actions-change-json@main
@@ -73,7 +71,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Modify library.json
-        if: ${{needs.setup.outputs.up_version == 'false'}}
+        if: ${{needs.setup.outputs.up_version == 'true'}}
         uses: maxgfr/actions-change-json@main
         with:
           key: "version"
