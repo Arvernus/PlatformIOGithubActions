@@ -2,6 +2,9 @@ name: CI
 
 on:
   workflow_call:
+    secrets:
+      PLATFORMIO_AUTH_TOKEN:
+        required: true
 
 env:
   PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
