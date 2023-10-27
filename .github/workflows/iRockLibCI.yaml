@@ -26,8 +26,6 @@ jobs:
       - name: Get version
         id: version
         uses: paulhatch/semantic-version@v5.3.0
-        with:
-          search_commit_body: true
       - name: get version of file
         id: version_file
         uses: notiz-dev/github-action-json-property@release
