@@ -44,7 +44,7 @@ jobs:
       - name: get enviroments from file
         id: environment_file
         run: |
-          echo "::set-output name=prop::$(pio project config --json-output | jq -cr '.[0][1][0][1]')"
+          echo "prop=$(pio project config --json-output | jq -cr '.[0][1][0][1]')" >> $GITHUB_OUTPUT
       - name: Print variables
         run: |
           echo environments: ${{ steps.environment_file.outputs.prop }}
@@ -107,7 +107,7 @@ jobs:
       - name: get test files
         id: test_files
         run: |
-          echo "::set-output name=testfiles::$(find test -name *.cpp)"
+          echo "testfiles=$(find test -name *.cpp)" >> $GITHUB_OUTPUT
           find test -name *.cpp
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
