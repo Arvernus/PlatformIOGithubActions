@@ -12,6 +12,7 @@ on:
         required: true
 env:
   PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
+  CI: true
   
 jobs:
   setup:
