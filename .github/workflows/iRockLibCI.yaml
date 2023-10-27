@@ -99,7 +99,6 @@ jobs:
         id: test_files
         run: |
           echo "testfiles=$(find test -name *.cpp)" >> $GITHUB_OUTPUT
-          find test -name *.cpp
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
         run: pio test
