@@ -8,6 +8,7 @@ on:
 
 env:
   PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
+  CI: true
 jobs:
   setup:
     name: Setup CI
