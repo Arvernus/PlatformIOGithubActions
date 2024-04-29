@@ -1,0 +1,39 @@
+name: Dependabot
+
+on:
+  workflow_call:
+    secrets:
+      PLATFORMIO_AUTH_TOKEN:
+        required: true
+
+env:
+  PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
+  CI: true
+jobs:
+  dependabot:
+    name: Dependabot
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'develop'
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+      - name: Install PlatformIO Core
+        run: pio platform update
+      - name: Update Libraries
+        run: pio lib update
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Update dependencies'
+          commit_user_name: 'dependabot[bot]'
+          file_pattern: 'platformio.ini'
