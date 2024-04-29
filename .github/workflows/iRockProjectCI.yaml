@@ -101,6 +101,8 @@ jobs:
         run: pip install --upgrade platformio
       - name: Define Softwareversion
         run: export PLATFORMIO_BUILD_FLAGS="-D SW_VERSION=${{ needs.setup.outputs.version }}"
+      - name: Run Check first
+        run: pio check --skip-packages
       - name: get test files
         id: test_files
         run: |
