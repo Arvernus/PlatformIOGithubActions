@@ -102,7 +102,7 @@ jobs:
       - name: Define Softwareversion
         run: export PLATFORMIO_BUILD_FLAGS="-D SW_VERSION=${{ needs.setup.outputs.version }}"
       - name: Run Check first
-        run: pio check --skip-packages
+        run: pio check
       - name: get test files
         id: test_files
         run: |
