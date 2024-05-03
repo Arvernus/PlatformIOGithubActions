@@ -107,7 +107,7 @@ jobs:
                 if i["lib"] == "${matrix.lib}" and i["env"] == "${matrix.env}":
                     update = (i["potential_new_version"] != "${matrix.current_version}")
                     new_version = i["potential_new_version"]
-            print("update: ", update)
-            set_output("update", update)
-            print("new_version: ", new_version)
-            set_output("new_version", new_version)
+                    print("new_version: ", new_version)
+                    set_output("new_version", new_version)
+            print("update: ", str(update).lower())
+            set_output("update", str(update).lower())
