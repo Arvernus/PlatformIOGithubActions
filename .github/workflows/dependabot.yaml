@@ -41,23 +41,26 @@ jobs:
                   dic[d][i] = re.sub(r"#.*", r"", dic[d][i])
             set_output("environments", str(dic['default_envs']))
             print("environments: ", dic['default_envs'])
+            all_libs =[]
             for env, libs in dic.items():
               if env != "default_envs":
                 set_output(env, str(libs))
                 print(env, ": ", libs)
-      - name: Print variables
-        run: |
-          echo environments: ${{ steps.analyse_ini.outputs.environments }}
+                for lib in libs:
+                  if lib not in all_libs:
+                    libs.append(lib)
+            set_output("libs", str(all_libs))
     outputs:
-      environments: ${{ steps.analyse_ini.outputs.prop }}
-
-
-
-      
+      environments: ${{ steps.analyse_ini.outputs.environments }}
+      libs: ${{ steps.analyse_ini.outputs.libs }}
+      platformio_ini_data: ${{ steps.analyse_ini.outputs }}
 
   dependabot:
     name: Dependabot
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: [10, 12, 14]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v3
@@ -74,7 +77,7 @@ jobs:
       - name: Install PlatformIO Core
         run: pio platform update
       - name: Update Libraries
-        run: pio pkg update
+        run: pio pkg update 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'Update dependencies'
