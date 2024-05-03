@@ -40,7 +40,9 @@ jobs:
                   dic[d][i] = re.sub(r"@.*", r"", dic[d][i])
                   dic[d][i] = re.sub(r"#.*", r"", dic[d][i])
             set_output("environments", str(dic['default_envs']))
-            
+            for env, libs in dic.items():
+              if env not "default_envs":
+                set_output(env, str(libs))
       - name: Print variables
         run: |
           echo environments: ${{ steps.analyse_ini.outputs.environments }}
