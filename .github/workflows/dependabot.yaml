@@ -101,7 +101,7 @@ jobs:
                     except:
                         None
                     dic["include"].append(e)
-            update = false
+            update = False
             new_version = ""
             for i in dic["include"]:
                 if i["lib"] == "${matrix.lib}" and i["env"] == "${matrix.env}":
