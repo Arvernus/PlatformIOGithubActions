@@ -10,6 +10,43 @@ env:
   PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
   CI: true
 jobs:
+  setup:
+    name: Setup Dependabot
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: get enviroments and libs from file
+        id: analyse_ini
+        uses: jannekem/run-python-script-action@v1
+        with:
+          script: |
+            import re
+            with open('platformio.ini', 'r', encoding='utf-8') as file_in:
+                text = file_in.read()
+            deff = re.findall(r'default_envs = (.*)', text)
+            dic = {}
+            dic['default_envs'] = deff[0].split(', ')
+            text = re.sub(r' ', r' ', text)
+            deff = re.findall(r'\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?', text, flags=re.DOTALL)
+            for d in deff:
+                dic[d[0]] = re.findall(r'\n\s+([^l\s][^i\s][^b\s][^\s]+)', d[1])
+            set_output(environments, str(dic['default_envs']))
+            
+      - name: Print variables
+        run: |
+          echo environments: ${{ steps.analyse_ini.outputs.environments }}
+    outputs:
+      environments: ${{ steps.analyse_ini.outputs.prop }}
+
+
+
+      
+
   dependabot:
     name: Dependabot
     runs-on: ubuntu-latest
@@ -28,6 +65,7 @@ jobs:
         run: pip install --upgrade platformio
       - name: Install PlatformIO Core
         run: pio platform update
+      - name: 
       - name: Update Libraries
         run: pio pkg update
       - uses: stefanzweifel/git-auto-commit-action@v5
