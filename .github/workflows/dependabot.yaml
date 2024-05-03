@@ -74,7 +74,7 @@ jobs:
       - name: Install PlatformIO Core
         run: pio platform update
       - name: Update Library
-        run: pio pkg install -l ${{ matrix.lib }} -e ${{ matrix.env }} --non-interactive
+        run: pio pkg install -l ${{ matrix.lib }} -e ${{ matrix.env }}
       - name: get version
         id: analyse_ini
         uses: jannekem/run-python-script-action@v1
