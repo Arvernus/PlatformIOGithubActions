@@ -13,9 +13,9 @@ jobs:
   setup:
     name: Setup Dependabot
     runs-on: ubuntu-latest
-
+    outputs:
+      matrix: ${{ steps.analyse_ini.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
       - name: Install Python
         uses: actions/setup-python@v4
         with:
@@ -26,30 +26,29 @@ jobs:
         with:
           script: |
             import re
-            with open("plattformio.ini", 'r', encoding="utf-8") as file_in:
-              text = file_in.read()
+            with open("platformio.ini", 'r', encoding="utf-8") as file_in:
+                text = file_in.read()
             deff = re.findall(r"default_envs = (.*)", text)
             dic = {}
-            dic["default_envs"] = deff[0].split(", ")
+            #dic["default_envs"] = deff[0].split(", ")
             dic["include"] = []
             text = re.sub(r" ", r" ", text)
             deff = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
-            dic["include"] = {}
+            i = 0
             for d in deff:
-              dic["include"][d[0]] = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", d[1])
-            for d in dic["include"]:
-              for i in range(len(dic["include"][d])):
-                temp = dic["include"][d][i]
-                splitted = re.split("@\^|#", temp)
-                try:
-                  dic["include"][d][i] = {}
-                  dic["include"][d][i][splitted[0]] = splitted[1]
-                except:
-                  dic["include"][d][i] = splitted[0]
-            set_output("matrix", str(dic))
+                temp = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", d[1])
+                for t in temp:
+                    e = {}
+                    splitted = re.split("@\^|#", t)
+                    e["env"] = str(d[0])
+                    e["lib"] = splitted[0]
+                    try:
+                        e["current_version"] = splitted[1]
+                    except:
+                        None
+                    dic["include"].append(e)
             print("matrix: ", dic)
-    outputs:
-      matrix: ${{ steps.analyse_ini.outputs.matrix }}
+            set_output("matrix", str(dic))
 
   dependabot:
     name: Dependabot
@@ -74,9 +73,40 @@ jobs:
       - name: Install PlatformIO Core
         run: pio platform update
       - name: Update Library
-        run: pio pkg install -l ${{ matrix.lib }}
-      - uses: stefanzweifel/git-auto-commit-action@v5
+        run: pio pkg install -l ${{ matrix.lib }} -e ${{ matrix.env }} --non-interactive
+      - name: get version
+        id: analyse_ini
+        uses: jannekem/run-python-script-action@v1
         with:
-          commit_message: 'Update dependencies'
-          commit_user_name: 'dependabot[bot]'
-          file_pattern: 'platformio.ini'
+          script: |
+            import re
+            with open("platformio.ini", 'r', encoding="utf-8") as file_in:
+                text = file_in.read()
+            deff = re.findall(r"default_envs = (.*)", text)
+            dic = {}
+            dic["include"] = []
+            text = re.sub(r" ", r" ", text)
+            deff = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
+            i = 0
+            for d in deff:
+                temp = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", d[1])
+                for t in temp:
+                    e = {}
+                    splitted = re.split("@\^|#", t)
+                    e["env"] = str(d[0])
+                    e["lib"] = splitted[0]
+                    try:
+                        e["potential_new_version"] = splitted[1]
+                    except:
+                        None
+                    dic["include"].append(e)
+            update = false
+            new_version = ""
+            for i in dic["include"]:
+                if i["lib"] == "${matrix.lib}" and i["env"] == "${matrix.env}":
+                    update = (i["potential_new_version"] != "${matrix.current_version}")
+                    new_version = i["potential_new_version"]
+            print("update: ", update)
+            set_output("update", update)
+            print("new_version: ", new_version)
+            set_output("new_version", new_version)
