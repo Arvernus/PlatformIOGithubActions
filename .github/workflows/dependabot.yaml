@@ -42,7 +42,7 @@ jobs:
             set_output("environments", str(dic['default_envs']))
             print("environments: ", dic['default_envs'])
             for env, libs in dic.items():
-              if env not "default_envs":
+              if env != "default_envs":
                 set_output(env, str(libs))
                 print(env, ": ", libs)
       - name: Print variables
