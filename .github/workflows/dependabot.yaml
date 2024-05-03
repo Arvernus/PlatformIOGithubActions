@@ -76,9 +76,9 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
       - name: Install PlatformIO Core
-        run: pio platform update ${{ matrix.lib }}
-      - name: Update Libraries
-        run: pio pkg update 
+        run: pio platform update
+      - name: Update Library
+        run: pio pkg update ${{ matrix.lib }}
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'Update dependencies'
