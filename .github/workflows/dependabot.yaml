@@ -48,7 +48,7 @@ jobs:
                 print(env, ": ", libs)
                 for lib in libs:
                   if lib not in all_libs:
-                    libs.append(lib)
+                    all_libs.append(lib)
             set_output("libs", str(all_libs))
             print("libs: ", all_libs)
     outputs:
