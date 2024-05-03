@@ -103,10 +103,10 @@ jobs:
                     dic["include"].append(e)
             update = False
             new_version = ""
-            print("${matrix.env}", "${matrix.lib}")
+            print("${{matrix.env}}", "${{matrix.lib}}")
             for i in dic["include"]:
-                if i["lib"] == "${matrix.lib}" and i["env"] == "${matrix.env}":
-                    update = (i["potential_new_version"] != "${matrix.current_version}")
+                if i["lib"] == "${{matrix.lib}}" and i["env"] == "${{matrix.env}}":
+                    update = (i["potential_new_version"] != "${{matrix.current_version}}")
                     new_version = i["potential_new_version"]
                     print("new_version: ", new_version)
                     set_output("new_version", new_version)
