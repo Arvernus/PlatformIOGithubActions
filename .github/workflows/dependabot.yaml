@@ -76,7 +76,7 @@ jobs:
       - name: Update Library
         run: pio pkg install -l ${{ matrix.lib }} -e ${{ matrix.env }}
       - name: get version
-        id: analyse_ini
+        id: compare_version
         uses: jannekem/run-python-script-action@v1
         with:
           script: |
@@ -111,3 +111,33 @@ jobs:
                     set_output("new_version", new_version)
             print("update: ", str(update).lower())
             set_output("update", str(update).lower())
+      - name: Check if Branch Exists
+        id: check_branch
+        if: steps.compare_version.outputs.update == 'true'
+        run: |
+          BRANCH_NAME="auto-update-${{ github.ref_name }}-${{ matrix.env }}-${{ matrix.lib }}-${{ steps.compare_version.outputs.new_version }}"
+          EXISTS=$(git ls-remote --heads origin $BRANCH_NAME)
+          if [[ -z "$EXISTS" ]]; then
+            echo "::set-output name=branch_exists::false"
+            echo "::set-output name=branch_name::$BRANCH_NAME"
+          else
+            echo "::set-output name=branch_exists::true"
+      - name: Create Branch and Commit Changes
+        if: steps.check_branch.outputs.branch_exists == 'false' && steps.compare_version.outputs.update == 'true'
+        run: |
+          git config user.name 'GitHub Actions'
+          git config user.email 'actions@github.com'
+          git checkout -b ${{ steps.check_branch.outputs.branch_name }}
+          # Hier die Änderungen an der `platformio.ini` vornehmen
+          git add platformio.ini
+          git commit -m "Update ${{ matrix.lib }} in ${{ matrix.env }} to version ${{ steps.compare_version.outputs.new_version }}"
+          git push --set-upstream origin ${{ steps.check_branch.outputs.branch_name }}
+      - name: Create Pull Request
+        if: steps.check_branch.outputs.branch_exists == 'false' && steps.compare_version.outputs.update == 'true'
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ steps.check_branch.outputs.branch_name }}
+          base: ${{ github.ref_name }}
+          title: "Auto-update ${{ matrix.lib }} in ${{ matrix.env }}"
+          body: "This auto-generated pull request updates ${{ matrix.lib }} in ${{ matrix.env }} to ${{ steps.compare_version.outputs.new_version }}. Please review."
