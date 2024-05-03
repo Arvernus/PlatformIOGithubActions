@@ -57,6 +57,7 @@ jobs:
     needs: [setup]
     strategy:
       matrix: ${{fromJson(needs.setup.outputs.matrix)}}
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v3
@@ -102,6 +103,7 @@ jobs:
                     dic["include"].append(e)
             update = False
             new_version = ""
+            print("${matrix.env}", "${matrix.lib}")
             for i in dic["include"]:
                 if i["lib"] == "${matrix.lib}" and i["env"] == "${matrix.env}":
                     update = (i["potential_new_version"] != "${matrix.current_version}")
