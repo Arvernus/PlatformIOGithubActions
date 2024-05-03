@@ -35,6 +35,10 @@ jobs:
             deff = re.findall(r'\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?', text, flags=re.DOTALL)
             for d in deff:
                 dic[d[0]] = re.findall(r'\n\s+([^l\s][^i\s][^b\s][^\s]+)', d[1])
+            for d in dic:
+              for i in range(len(dic[d])):
+                  dic[d][i] = re.sub(r"@.*", r"", dic[d][i])
+                  dic[d][i] = re.sub(r"#.*", r"", dic[d][i])
             set_output("environments", str(dic['default_envs']))
             
       - name: Print variables
