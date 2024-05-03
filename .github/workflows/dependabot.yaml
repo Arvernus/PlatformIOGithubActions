@@ -26,36 +26,30 @@ jobs:
         with:
           script: |
             import re
-            with open('platformio.ini', 'r', encoding='utf-8') as file_in:
-                text = file_in.read()
-            # Extraktion von default environments
-            deff = re.findall(r'default_envs = (.*)', text)
-            # Extraktion von Bibliotheken und ihren Versionen
+            with open("plattformio.ini", 'r', encoding="utf-8") as file_in:
+              text = file_in.read()
+            deff = re.findall(r"default_envs = (.*)", text)
             dic = {}
-            dic['default_envs'] = deff[0].split(', ')
-            text = re.sub(r' ', r' ', text)
-            deff = re.findall(r'\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?', text, flags=re.DOTALL)
+            dic["default_envs"] = deff[0].split(", ")
+            dic["include"] = []
+            text = re.sub(r" ", r" ", text)
+            deff = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
+            dic["include"] = {}
             for d in deff:
-                dic[d[0]] = re.findall(r'\n\s+([^l\s][^i\s][^b\s][^\s]+)', d[1])
-            for d in dic:
-              for i in range(len(dic[d])):
-                  dic[d][i] = re.sub(r"@.*", r"", dic[d][i])
-                  dic[d][i] = re.sub(r"#.*", r"", dic[d][i])
-            set_output("environments", str(dic['default_envs']))
-            print("environments: ", dic['default_envs'])
-            all_libs =[]
-            for env, libs in dic.items():
-              if env != "default_envs":
-                set_output(env, str(libs))
-                print(env, ": ", libs)
-                for lib in libs:
-                  if lib not in all_libs:
-                    all_libs.append(lib)
-            set_output("libs", str(all_libs))
-            print("libs: ", all_libs)
+              dic["include"][d[0]] = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", d[1])
+            for d in dic["include"]:
+              for i in range(len(dic["include"][d])):
+                temp = dic["include"][d][i]
+                splitted = re.split("@\^|#", temp)
+                try:
+                  dic["include"][d][i] = {}
+                  dic["include"][d][i][splitted[0]] = splitted[1]
+                except:
+                  dic["include"][d][i] = splitted[0]
+            set_output("matrix", str(dic))
+            print("matrix: ", dic)
     outputs:
-      environments: ${{ steps.analyse_ini.outputs.environments }}
-      libs: ${{ steps.analyse_ini.outputs.libs }}
+      matrix: ${{ steps.analyse_ini.outputs.matrix }}
 
   dependabot:
     name: Dependabot
@@ -63,8 +57,7 @@ jobs:
     needs: [setup]
     strategy:
       max-parallel: 1
-      matrix:
-        lib: ${{fromJson(needs.setup.outputs.libs)}}
+      matrix: ${{fromJson(needs.setup.outputs.matrix)}}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v3
