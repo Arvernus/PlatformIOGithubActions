@@ -28,7 +28,9 @@ jobs:
             import re
             with open('platformio.ini', 'r', encoding='utf-8') as file_in:
                 text = file_in.read()
+            # Extraktion von default environments
             deff = re.findall(r'default_envs = (.*)', text)
+            # Extraktion von Bibliotheken und ihren Versionen
             dic = {}
             dic['default_envs'] = deff[0].split(', ')
             text = re.sub(r' ', r' ', text)
@@ -73,7 +75,7 @@ jobs:
           key: ${{ runner.os }}-pio
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.x'
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
       - name: Install PlatformIO Core
