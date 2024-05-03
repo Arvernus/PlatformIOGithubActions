@@ -16,6 +16,7 @@ jobs:
     outputs:
       matrix: ${{ steps.analyse_ini.outputs.matrix }}
     steps:
+      - uses: actions/checkout@v4
       - name: Install Python
         uses: actions/setup-python@v4
         with:
