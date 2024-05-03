@@ -60,6 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [setup]
     strategy:
+      max-parallel: 1
       matrix:
         lib: ${{fromJson(needs.setup.outputs.libs)}}
     steps:
