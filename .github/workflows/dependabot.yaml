@@ -50,6 +50,7 @@ jobs:
                   if lib not in all_libs:
                     libs.append(lib)
             set_output("libs", str(all_libs))
+            print("libs: ", all_libs)
     outputs:
       environments: ${{ steps.analyse_ini.outputs.environments }}
       libs: ${{ steps.analyse_ini.outputs.libs }}
