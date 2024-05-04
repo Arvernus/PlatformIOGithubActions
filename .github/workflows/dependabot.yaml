@@ -87,10 +87,10 @@ jobs:
                               None
                           break
           matrix = {}
-          matrix["libarys"] = []
+          matrix["include"] = []
           for lib in libarys:
               if lib["update"] == "true":
-                  matrix["libarys"].append(lib)
+                  matrix["include"].append(lib)
                   
           print("matrix: ", matrix)
           set_output("matrix", str(matrix))
