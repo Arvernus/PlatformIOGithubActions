@@ -150,7 +150,7 @@ jobs:
                   print(delimiter, file=fh)
           branch_name="auto-update-${{ matrix.env }}-${{ github.ref_name }}-${{ matrix.lib }}-${{ steps.compare_version.outputs.new_version }}"
           hash = os.system(f"git ls-remote --heads origin {branch_name}")
-          if hash != 0:
+          if hash == 0:
               set_output("branch_exists", "false")
               set_output("branch_name", branch_name)
           else:
