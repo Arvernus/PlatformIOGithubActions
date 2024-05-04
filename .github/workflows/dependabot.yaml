@@ -171,6 +171,7 @@ jobs:
                   print(f'{name}<<{delimiter}', file=fh)
                   print(value, file=fh)
                   print(delimiter, file=fh)
+          os.system(f"git config --global user.name 'dependabot[bot]'")
           os.system(f"git checkout -b ${{ steps.check_branch.outputs.branch_name }}")
           os.system(f"git add platformio.ini")
           os.system(f"git commit -m 'Update ${{ matrix.lib }} in ${{ matrix.env }} to version ${{ steps.compare_version.outputs.new_version }}'")
