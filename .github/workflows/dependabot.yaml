@@ -18,10 +18,20 @@ jobs:
       libarys: ${{ steps.analyse_ini.outputs.libarys }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
       - name: Install Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+      - name: Install PlatformIO Core
+        run: pio platform update
       - name: get enviroments and libs from file
         id: analyse_ini
         shell: python
