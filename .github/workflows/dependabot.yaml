@@ -26,6 +26,7 @@ jobs:
         shell: python
         run: |
           import re
+          import os
           import uuid
           def set_output(name, value):
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
@@ -89,6 +90,7 @@ jobs:
         shell: python
         run: |
           import re
+          import os
           import uuid
           def set_output(name, value):
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
@@ -158,6 +160,7 @@ jobs:
         shell: python
         run: |
           import re
+          import os
           import uuid
           def set_output(name, value):
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
