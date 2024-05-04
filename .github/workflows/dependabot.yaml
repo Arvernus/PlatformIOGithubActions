@@ -122,48 +122,10 @@ jobs:
         run: pio platform update
       - name: Update Library
         run: pio pkg install -l ${{ matrix.lib }} -e ${{ matrix.env }}
-      - name: Check if Branch Exists
-        id: check_branch
-        shell: python
-        run: |
-          import os
-          import uuid
-          def set_output(name, value):
-              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                  print(f'{name}={value}', file=fh)
-          def set_multiline_output(name, value):
-              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                  delimiter = uuid.uuid1()
-                  print(f'{name}<<{delimiter}', file=fh)
-                  print(value, file=fh)
-                  print(delimiter, file=fh)
-          branch_name="auto-update-${{ matrix.env }}-${{ github.ref_name }}-${{ matrix.lib }}-${{ matrix.new_version }}"
-          hash = os.system(f"git ls-remote --heads origin {branch_name}")
-          if hash == 0:
-              set_output("branch_exists", "false")
-              set_output("branch_name", branch_name)
-          else:
-              set_output("branch_exists", "true")
-      - uses: fregante/setup-git-user@v2
-      - name: Create Branch, Commit Changes and Create Pull Request
-        if: steps.check_branch.outputs.branch_exists == 'false'
-        shell: python
-        run: |
-          import re
-          import os
-          import uuid
-          def set_output(name, value):
-              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                  print(f'{name}={value}', file=fh)
-          def set_multiline_output(name, value):
-              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                  delimiter = uuid.uuid1()
-                  print(f'{name}<<{delimiter}', file=fh)
-                  print(value, file=fh)
-                  print(delimiter, file=fh)
-          os.system(f"git config --global user.name 'dependabot[bot]'")
-          os.system(f"git checkout -b '${{ steps.check_branch.outputs.branch_name }}'")
-          os.system(f"git add platformio.ini")
-          os.system(f"git commit -m 'Update ${{ matrix.lib }} in ${{ matrix.env }} to version ${{ matrix.new_version }}'")
-          os.system(f"git push --set-upstream origin '${{ steps.check_branch.outputs.branch_name }}'")
-          os.system(f"gh pr create --title 'Update ${{matrix.lib}} in ${{matrix.env}} to version ${{matrix.new_version}}' --body 'This auto-generated pull request updates ${{matrix.lib}} in ${{matrix.env}} to ${{matrix.new_version}}. Please review.' --base '${{github.base_ref}}'' --head '${{steps.check_branch.outputs.branch_name}}'")
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: 'Update ${{matrix.lib}} in ${{matrix.env}} to version ${{matrix.new_version}}'
+          body: |
+            This auto-generated pull request updates ${{matrix.lib}} in ${{matrix.env}} to ${{matrix.new_version}}. Please review.
