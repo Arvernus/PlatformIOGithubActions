@@ -23,33 +23,42 @@ jobs:
           python-version: '3.x'
       - name: get enviroments and libs from file
         id: analyse_ini
-        uses: jannekem/run-python-script-action@v1
-        with:
-          script: |
-            import re
-            with open("platformio.ini", 'r', encoding="utf-8") as file_in:
-                text = file_in.read()
-            deff = re.findall(r"default_envs = (.*)", text)
-            dic = {}
-            #dic["default_envs"] = deff[0].split(", ")
-            dic["include"] = []
-            text = re.sub(r" ", r" ", text)
-            deff = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
-            i = 0
-            for d in deff:
-                temp = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", d[1])
-                for t in temp:
-                    e = {}
-                    splitted = re.split("@\^|#", t)
-                    e["env"] = str(d[0])
-                    e["lib"] = splitted[0]
-                    try:
-                        e["current_version"] = splitted[1]
-                    except:
-                        None
-                    dic["include"].append(e)
-            print("matrix: ", dic)
-            set_output("matrix", str(dic))
+        shell: python
+        run: |
+          import re
+          import uuid
+          def set_output(name, value):
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  print(f'{name}={value}', file=fh)
+          def set_multiline_output(name, value):
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  delimiter = uuid.uuid1()
+                  print(f'{name}<<{delimiter}', file=fh)
+                  print(value, file=fh)
+                  print(delimiter, file=fh)
+          with open("platformio.ini", 'r', encoding="utf-8") as file_in:
+              text = file_in.read()
+          deff = re.findall(r"default_envs = (.*)", text)
+          dic = {}
+          #dic["default_envs"] = deff[0].split(", ")
+          dic["include"] = []
+          text = re.sub(r" ", r" ", text)
+          deff = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
+          i = 0
+          for d in deff:
+              temp = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", d[1])
+              for t in temp:
+                  e = {}
+                  splitted = re.split("@\^|#", t)
+                  e["env"] = str(d[0])
+                  e["lib"] = splitted[0]
+                  try:
+                      e["current_version"] = splitted[1]
+                  except:
+                      None
+                  dic["include"].append(e)
+          print("matrix: ", dic)
+          set_output("matrix", str(dic))
 
   dependabot:
     name: Dependabot
@@ -77,68 +86,90 @@ jobs:
         run: pio pkg install -l ${{ matrix.lib }} -e ${{ matrix.env }}
       - name: get version
         id: compare_version
-        uses: jannekem/run-python-script-action@v1
-        with:
-          script: |
-            import re
-            with open("platformio.ini", 'r', encoding="utf-8") as file_in:
-                text = file_in.read()
-            deff = re.findall(r"default_envs = (.*)", text)
-            dic = {}
-            dic["include"] = []
-            text = re.sub(r" ", r" ", text)
-            deff = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
-            i = 0
-            for d in deff:
-                temp = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", d[1])
-                for t in temp:
-                    e = {}
-                    splitted = re.split("@\^|#", t)
-                    e["env"] = str(d[0])
-                    e["lib"] = splitted[0]
-                    try:
-                        e["potential_new_version"] = splitted[1]
-                    except:
-                        None
-                    dic["include"].append(e)
-            update = False
-            new_version = ""
-            print("${{matrix.env}}", "${{matrix.lib}}")
-            for i in dic["include"]:
-                if i["lib"] == "${{matrix.lib}}" and i["env"] == "${{matrix.env}}":
-                    update = (i["potential_new_version"] != "${{matrix.current_version}}")
-                    new_version = i["potential_new_version"]
-                    print("new_version: ", new_version)
-                    set_output("new_version", new_version)
-            print("update: ", str(update).lower())
-            set_output("update", str(update).lower())
+        shell: python
+        run: |
+          import re
+          import uuid
+          def set_output(name, value):
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  print(f'{name}={value}', file=fh)
+          def set_multiline_output(name, value):
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  delimiter = uuid.uuid1()
+                  print(f'{name}<<{delimiter}', file=fh)
+                  print(value, file=fh)
+                  print(delimiter, file=fh)
+          with open("platformio.ini", 'r', encoding="utf-8") as file_in:
+              text = file_in.read()
+          deff = re.findall(r"default_envs = (.*)", text)
+          dic = {}
+          dic["include"] = []
+          text = re.sub(r" ", r" ", text)
+          deff = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
+          i = 0
+          for d in deff:
+              temp = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", d[1])
+              for t in temp:
+                  e = {}
+                  splitted = re.split("@\^|#", t)
+                  e["env"] = str(d[0])
+                  e["lib"] = splitted[0]
+                  try:
+                      e["potential_new_version"] = splitted[1]
+                  except:
+                      None
+                  dic["include"].append(e)
+          update = False
+          new_version = ""
+          print("${{matrix.env}}", "${{matrix.lib}}")
+          for i in dic["include"]:
+              if i["lib"] == "${{matrix.lib}}" and i["env"] == "${{matrix.env}}":
+                  update = (i["potential_new_version"] != "${{matrix.current_version}}")
+                  new_version = i["potential_new_version"]
+                  print("new_version: ", new_version)
+                  set_output("new_version", new_version)
+          print("update: ", str(update).lower())
+          set_output("update", str(update).lower())
       - name: Check if Branch Exists
         id: check_branch
         if: steps.compare_version.outputs.update == 'true'
+        shell: python
         run: |
-          BRANCH_NAME="auto-update-${{ github.ref_name }}-${{ matrix.env }}-${{ matrix.lib }}-${{ steps.compare_version.outputs.new_version }}"
-          EXISTS=$(git ls-remote --heads origin $BRANCH_NAME)
-          if [[ -z "$EXISTS" ]]; then
-            echo "::set-output name=branch_exists::false"
-            echo "::set-output name=branch_name::$BRANCH_NAME"
-          else
-            echo "::set-output name=branch_exists::true"
-      - name: Create Branch and Commit Changes
+          import os
+          import uuid
+          def set_output(name, value):
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  print(f'{name}={value}', file=fh)
+          def set_multiline_output(name, value):
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  delimiter = uuid.uuid1()
+                  print(f'{name}<<{delimiter}', file=fh)
+                  print(value, file=fh)
+                  print(delimiter, file=fh)
+          branch_name="auto-update-${{ matrix.env }}-${{ github.ref_name }}-${{ matrix.lib }}-${{ steps.compare_version.outputs.new_version }}"
+          hash = os.system(f"git ls-remote --heads origin {branch_name}")
+          if hash != 0:
+              set_output("branch_exists", "false")
+              set_output("branch_name", branch_name)
+          else:
+              set_output("branch_exists", "true")
+      - name: Create Branch, Commit Changes and Create Pull Request
         if: steps.check_branch.outputs.branch_exists == 'false' && steps.compare_version.outputs.update == 'true'
+        shell: python
         run: |
-          git config user.name 'GitHub Actions'
-          git config user.email 'actions@github.com'
-          git checkout -b ${{ steps.check_branch.outputs.branch_name }}
-          # Hier die Änderungen an der `platformio.ini` vornehmen
-          git add platformio.ini
-          git commit -m "Update ${{ matrix.lib }} in ${{ matrix.env }} to version ${{ steps.compare_version.outputs.new_version }}"
-          git push --set-upstream origin ${{ steps.check_branch.outputs.branch_name }}
-      - name: Create Pull Request
-        if: steps.check_branch.outputs.branch_exists == 'false' && steps.compare_version.outputs.update == 'true'
-        uses: peter-evans/create-pull-request@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ steps.check_branch.outputs.branch_name }}
-          base: ${{ github.ref_name }}
-          title: "Auto-update ${{ matrix.lib }} in ${{ matrix.env }}"
-          body: "This auto-generated pull request updates ${{ matrix.lib }} in ${{ matrix.env }} to ${{ steps.compare_version.outputs.new_version }}. Please review."
+          import re
+          import uuid
+          def set_output(name, value):
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  print(f'{name}={value}', file=fh)
+          def set_multiline_output(name, value):
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  delimiter = uuid.uuid1()
+                  print(f'{name}<<{delimiter}', file=fh)
+                  print(value, file=fh)
+                  print(delimiter, file=fh)
+          os.system(f"git checkout -b ${{ steps.check_branch.outputs.branch_name }}")
+          os.system(f"git add platformio.ini")
+          os.system(f"git commit -m 'Update ${{ matrix.lib }} in ${{ matrix.env }} to version ${{ steps.compare_version.outputs.new_version }}'")
+          os.system(f"git push --set-upstream origin ${{ steps.check_branch.outputs.branch_name }}")
+          os.system(f"gh pr create --title Update ${{ matrix.lib }} in ${{ matrix.env }} to version ${{ steps.compare_version.outputs.new_version }}' --body 'This auto-generated pull request updates ${{ matrix.lib }} in ${{ matrix.env }} to ${{ steps.compare_version.outputs.new_version }}. Please review.' --base ${{ github.base_ref }} --head ${{ steps.check_branch.outputs.branch_name }}"
