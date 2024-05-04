@@ -105,6 +105,7 @@ jobs:
     strategy:
       matrix: ${{fromJson(needs.setup.outputs.matrix)}}
       fail-fast: false
+      max-parallel: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
@@ -130,4 +131,4 @@ jobs:
           body: |
             This auto-generated pull request updates ${{matrix.lib}} in ${{matrix.env}} to ${{matrix.new_version}}. Please review.
           add-paths: 'platformio.ini'
-          branch-suffix: random
+          branch: 'auto-update-${{matrix.lib}}-${{matrix.env}}-${{matrix.new_version}}'
