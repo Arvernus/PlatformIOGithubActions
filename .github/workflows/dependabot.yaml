@@ -177,4 +177,4 @@ jobs:
           os.system(f"git add platformio.ini")
           os.system(f"git commit -m 'Update ${{ matrix.lib }} in ${{ matrix.env }} to version ${{ steps.compare_version.outputs.new_version }}'")
           os.system(f"git push --set-upstream origin ${{ steps.check_branch.outputs.branch_name }}")
-          os.system(f"gh pr create --title Update ${{ matrix.lib }} in ${{ matrix.env }} to version ${{ steps.compare_version.outputs.new_version }}' --body 'This auto-generated pull request updates ${{ matrix.lib }} in ${{ matrix.env }} to ${{ steps.compare_version.outputs.new_version }}. Please review.' --base ${{ github.base_ref }} --head ${{ steps.check_branch.outputs.branch_name }}")
+          os.system(f"gh pr create --title 'Update {matrix.lib} in {matrix.env} to version {steps.compare_version.outputs.new_version}' --body 'This auto-generated pull request updates {matrix.lib} in {matrix.env} to {steps.compare_version.outputs.new_version}. Please review.' --base {github.base_ref} --head {steps.check_branch.outputs.branch_name}")
