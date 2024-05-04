@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.analyse_ini.outputs.matrix }}
+      libarys: ${{ steps.analyse_ini.outputs.libarys }}
     steps:
       - uses: actions/checkout@v4
       - name: Install Python
@@ -39,27 +40,53 @@ jobs:
                   print(delimiter, file=fh)
           with open("platformio.ini", 'r', encoding="utf-8") as file_in:
               text = file_in.read()
-          deff = re.findall(r"default_envs = (.*)", text)
-          dic = {}
-          #dic["default_envs"] = deff[0].split(", ")
-          dic["include"] = []
+          libarys = []
           text = re.sub(r" ", r" ", text)
-          deff = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
-          i = 0
-          for d in deff:
-              temp = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", d[1])
-              for t in temp:
-                  e = {}
-                  splitted = re.split("@\^|#", t)
-                  e["env"] = str(d[0])
-                  e["lib"] = splitted[0]
+          text_processed = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
+          for environment in text_processed:
+              libs = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", environment[1])
+              for lib in libs:
+                  this_lib = {}
+                  splitted = re.split("@\^|#", lib)
+                  this_lib["env"] = str(environment[0])
+                  this_lib["lib"] = splitted[0]
                   try:
-                      e["current_version"] = splitted[1]
+                      this_lib["current_version"] = splitted[1]
                   except:
                       None
-                  dic["include"].append(e)
-          print("matrix: ", dic)
-          set_output("matrix", str(dic))
+                  libarys.append(this_lib)
+          for lib in libarys:
+              os.system(f"pio pkg install -l {lib["lib"]} -e {lib["env"]}")
+          with open("platformio.ini", 'r', encoding="utf-8") as file_in:
+              text = file_in.read()
+          text = re.sub(r" ", r" ", text)
+          text_processed = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
+          for environment in text_processed:
+              libs = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", environment[1])
+              for lib in libs:
+                  splitted = re.split("@\^|#", lib)
+                  for lib_i, lib in enumerate(libarys):
+                      if lib["lib"] == splitted[0] and lib["env"] == str(environment[0]):
+                          try:
+                              libarys[lib_i]["new_version"] = splitted[1]
+                          except:
+                              None
+                          try:
+                              libarys[lib_i]["update"] = str(libarys[lib_i]["current_version"] != libarys[lib_i]["new_version"]).lower()
+                          except:
+                              None
+                          break
+          matrix = {}
+          matrix["libarys"] = []
+          for lib in libarys:
+              if lib["update"] == "true":
+                  matrix["libarys"].append(lib)
+                  
+          print("matrix: ", matrix)
+          set_output("matrix", str(matrix))
+
+          print("libarys: ", libarys)
+          set_output("libarys", str(libarys))
 
   dependabot:
     name: Dependabot
@@ -85,56 +112,8 @@ jobs:
         run: pio platform update
       - name: Update Library
         run: pio pkg install -l ${{ matrix.lib }} -e ${{ matrix.env }}
-      - name: get version
-        id: compare_version
-        shell: python
-        run: |
-          import re
-          import os
-          import uuid
-          def set_output(name, value):
-              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                  print(f'{name}={value}', file=fh)
-          def set_multiline_output(name, value):
-              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                  delimiter = uuid.uuid1()
-                  print(f'{name}<<{delimiter}', file=fh)
-                  print(value, file=fh)
-                  print(delimiter, file=fh)
-          with open("platformio.ini", 'r', encoding="utf-8") as file_in:
-              text = file_in.read()
-          deff = re.findall(r"default_envs = (.*)", text)
-          dic = {}
-          dic["include"] = []
-          text = re.sub(r" ", r" ", text)
-          deff = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
-          i = 0
-          for d in deff:
-              temp = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", d[1])
-              for t in temp:
-                  e = {}
-                  splitted = re.split("@\^|#", t)
-                  e["env"] = str(d[0])
-                  e["lib"] = splitted[0]
-                  try:
-                      e["potential_new_version"] = splitted[1]
-                  except:
-                      None
-                  dic["include"].append(e)
-          update = False
-          new_version = ""
-          print("${{matrix.env}}", "${{matrix.lib}}")
-          for i in dic["include"]:
-              if i["lib"] == "${{matrix.lib}}" and i["env"] == "${{matrix.env}}":
-                  update = (i["potential_new_version"] != "${{matrix.current_version}}")
-                  new_version = i["potential_new_version"]
-                  print("new_version: ", new_version)
-                  set_output("new_version", new_version)
-          print("update: ", str(update).lower())
-          set_output("update", str(update).lower())
       - name: Check if Branch Exists
         id: check_branch
-        if: steps.compare_version.outputs.update == 'true'
         shell: python
         run: |
           import os
@@ -148,7 +127,7 @@ jobs:
                   print(f'{name}<<{delimiter}', file=fh)
                   print(value, file=fh)
                   print(delimiter, file=fh)
-          branch_name="auto-update-${{ matrix.env }}-${{ github.ref_name }}-${{ matrix.lib }}-${{ steps.compare_version.outputs.new_version }}"
+          branch_name="auto-update-${{ matrix.env }}-${{ github.ref_name }}-${{ matrix.lib }}-${{ matrix.new_version }}"
           hash = os.system(f"git ls-remote --heads origin {branch_name}")
           if hash == 0:
               set_output("branch_exists", "false")
@@ -157,7 +136,7 @@ jobs:
               set_output("branch_exists", "true")
       - uses: fregante/setup-git-user@v2
       - name: Create Branch, Commit Changes and Create Pull Request
-        if: steps.check_branch.outputs.branch_exists == 'false' && steps.compare_version.outputs.update == 'true'
+        if: steps.check_branch.outputs.branch_exists == 'false'
         shell: python
         run: |
           import re
@@ -175,6 +154,6 @@ jobs:
           os.system(f"git config --global user.name 'dependabot[bot]'")
           os.system(f"git checkout -b ${{ steps.check_branch.outputs.branch_name }}")
           os.system(f"git add platformio.ini")
-          os.system(f"git commit -m 'Update ${{ matrix.lib }} in ${{ matrix.env }} to version ${{ steps.compare_version.outputs.new_version }}'")
+          os.system(f"git commit -m 'Update ${{ matrix.lib }} in ${{ matrix.env }} to version ${{ matrix.new_version }}'")
           os.system(f"git push --set-upstream origin ${{ steps.check_branch.outputs.branch_name }}")
-          os.system(f"gh pr create --title 'Update ${{matrix.lib}} in ${{matrix.env}} to version ${{steps.compare_version.outputs.new_version}}' --body 'This auto-generated pull request updates ${{matrix.lib}} in ${{matrix.env}} to ${{steps.compare_version.outputs.new_version}}. Please review.' --base ${{github.base_ref}} --head ${{steps.check_branch.outputs.branch_name}}")
+          os.system(f"gh pr create --title 'Update ${{matrix.lib}} in ${{matrix.env}} to version ${{matrix.new_version}}' --body 'This auto-generated pull request updates ${{matrix.lib}} in ${{matrix.env}} to ${{matrix.new_version}}. Please review.' --base ${{github.base_ref}} --head ${{steps.check_branch.outputs.branch_name}}")
