@@ -56,7 +56,7 @@ jobs:
                   print(value, file=fh)
                   print(delimiter, file=fh)
           is_lib = "${{ inputs.is_lib }}" == "true"
-          libarys = []
+          libarys = []libarys = []
           with open("platformio.ini", 'r', encoding="utf-8") as file_in:
               text = file_in.read()
           with open("library.json", 'r', encoding="utf-8") as file_in:
@@ -67,12 +67,20 @@ jobs:
           for environment in text_processed:
               libs = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", environment[1])
               if is_lib:
-                  for lib, version in dependencies:
-                      libarys.append({
+                  try:
+                      for lib, version in dependencies:
+                          libarys.append({
                           "lib": lib,
                           "current_version": version,
                           "env": str(environment[0])
                       })
+                  except:
+                      for lib, version in dependencies.items():
+                          libarys.append({
+                              "lib": lib,
+                              "current_version": version,
+                              "env": str(environment[0])
+                          })
               else:
                   for lib in libs:
                       this_lib = {}
@@ -116,7 +124,7 @@ jobs:
 
           print("libarys: ", libarys)
           set_output("libarys", str(libarys))
-          
+
           needs_update = "true" if len(matrix["include"]) > 0 else "false"
           print("needs_update: ", needs_update)
           set_output("needs_update", str(needs_update))
@@ -189,7 +197,9 @@ jobs:
           title: 'Update Dependency ${{matrix.lib}} to version ${{matrix.new_version}}'
           body: |
             This auto-generated pull request updates Dependency ${{matrix.lib}} to ${{matrix.new_version}}. Please review.
-          add-paths: 'library.json'
+          add-paths: |
+            library.json
+            platformio.ini
           branch: 'auto-update-${{matrix.lib}}-${{matrix.new_version}}'
           commit-message: |
             Dependabot Update
