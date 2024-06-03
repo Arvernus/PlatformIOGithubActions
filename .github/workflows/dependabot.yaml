@@ -47,10 +47,14 @@ jobs:
           import uuid
           import json
           def set_output(name, value):
+              if isinstance(value, bool):
+                  value = "true" if value else "false"
               print(name, ": ", value)
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                   print(f'{name}={value}', file=fh)
           def set_multiline_output(name, value):
+              if isinstance(value, bool):
+                  value = "true" if value else "false"
               print(name, ": ", value)
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                   delimiter = uuid.uuid1()
