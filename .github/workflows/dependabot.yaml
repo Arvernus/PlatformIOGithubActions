@@ -24,7 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
-        if: ${{ inputs.is_lib == false }}
         with:
           path: |
             ~/.cache/pip
@@ -55,7 +54,7 @@ jobs:
                   print(f'{name}<<{delimiter}', file=fh)
                   print(value, file=fh)
                   print(delimiter, file=fh)
-          is_lib = os.getenv('INPUT_IS_LIB', 'false').lower() == 'true'
+          is_lib = ${{ inputs.is_lib }}
           libarys = []
           if is_lib:
               with open("library.json", 'r', encoding="utf-8") as file_in:
