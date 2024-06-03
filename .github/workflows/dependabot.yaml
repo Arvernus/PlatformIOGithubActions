@@ -158,24 +158,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
-        if: ${{ inputs.is_lib == false }}
         with:
           path: |
             ~/.cache/pip
             ~/.platformio/.cache
           key: ${{ runner.os }}-pio
       - uses: actions/setup-python@v5
-        if: ${{ inputs.is_lib == false }}
         with:
           python-version: '3.x'
       - name: Install PlatformIO Core
-        if: ${{ inputs.is_lib == false }}
         run: pip install --upgrade platformio
       - name: Install PlatformIO Core
-        if: ${{ inputs.is_lib == false }}
         run: pio pkg update
       - name: Update Library
-        if: ${{ inputs.is_lib == false }}
         run: pio pkg install -l ${{ matrix.lib }} -e ${{ matrix.env }}
       - name: Update Dependency
         if: ${{ inputs.is_lib == true }}
@@ -184,15 +179,27 @@ jobs:
           import json
 
           with open("library.json", 'r', encoding="utf-8") as file_in:
-                  library_data = json.load(file_in)
+              library_data = json.loads(file_in.read())
 
-          for dep in library_data['dependencies']:
-              if dep == '${{ matrix.lib }}':
-                  library_data['dependencies'][dep] = '^${{ matrix.new_version }}'
-
+          version = "${{ matrix.new_version }}"
+          lib = "${{ matrix.lib }}"
+          for dependency_i, dependency in enumerate(library_data['dependencies']):
+              if isinstance(dependency, dict):
+                  if 'owner' in dependency:
+                      if library_data['dependencies'][dependency_i]['owner'] == '${{ matrix.owner }}' and library_data['dependencies'][dependency_i]['name'] == '${{ matrix.name }}':
+                          library_data['dependencies'][dependency_i]['version'] = version
+                          break
+                  else:
+                      if library_data['dependencies'][dependency_i]['name'] == '${{ matrix.name }}':
+                          library_data['dependencies'][dependency_i]['version'] = version
+                          break
+              else:
+                  if dependency == '${{ matrix.lib }}':
+                      library_data['dependencies'][dependency_i] = version
+                      break
+                  
           with open('library.json', 'w', encoding='utf-8') as file:
-              json.dump(data, file, indent=4)
-
+              file.write(json.dumps(library_data, indent=2))
       - name: Create Pull Request
         if: ${{ inputs.is_lib == false }}
         uses: peter-evans/create-pull-request@v6
