@@ -56,7 +56,7 @@ jobs:
                   print(value, file=fh)
                   print(delimiter, file=fh)
           is_lib = "${{ inputs.is_lib }}" == "true"
-          libarys = []libarys = []
+          libarys = []
           with open("platformio.ini", 'r', encoding="utf-8") as file_in:
               text = file_in.read()
           with open("library.json", 'r', encoding="utf-8") as file_in:
