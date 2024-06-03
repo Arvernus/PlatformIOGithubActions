@@ -66,8 +66,9 @@ jobs:
           os.system(f"pio project config --json-output > platformio.json")
           with open("platformio.json", 'r', encoding="utf-8") as file_in:
               config = json.loads(file_in.read())
-          with open("library.json", 'r', encoding="utf-8") as file_in:
-              manifest = json.loads(file_in.read())
+          if is_lib:
+              with open("library.json", 'r', encoding="utf-8") as file_in:
+                  manifest = json.loads(file_in.read())
           for member_i in config:
               if member_i[0].startswith("env:"):
                   env=member_i[0][len("env:"):]
