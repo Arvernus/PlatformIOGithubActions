@@ -130,28 +130,62 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
+        if: ${{ inputs.is_lib == false }}
         with:
           path: |
             ~/.cache/pip
             ~/.platformio/.cache
           key: ${{ runner.os }}-pio
       - uses: actions/setup-python@v5
+        if: ${{ inputs.is_lib == false }}
         with:
           python-version: '3.x'
       - name: Install PlatformIO Core
+        if: ${{ inputs.is_lib == false }}
         run: pip install --upgrade platformio
       - name: Install PlatformIO Core
+        if: ${{ inputs.is_lib == false }}
         run: pio pkg update
       - name: Update Library
+        if: ${{ inputs.is_lib == false }}
         run: pio pkg install -l ${{ matrix.lib }} -e ${{ matrix.env }}
+      - name: Update Dependency
+        if: ${{ inputs.is_lib == true }}
+        shell: python
+        run: |
+          import json
+
+          with open("library.json", 'r', encoding="utf-8") as file_in:
+                  library_data = json.load(file_in)
+
+          for dep in library_data['dependencies']:
+              if dep == '${{ matrix.lib }}':
+                  library_data['dependencies'][dep] = '^${{ matrix.new_version }}'
+
+          with open('library.json', 'w', encoding='utf-8') as file:
+              json.dump(data, file, indent=4)
+
       - name: Create Pull Request
-        id: cpr
+        if: ${{ inputs.is_lib == false }}
         uses: peter-evans/create-pull-request@v6
         with:
           title: 'Update ${{matrix.lib}} to version ${{matrix.new_version}}'
           body: |
             This auto-generated pull request updates ${{matrix.lib}} to ${{matrix.new_version}}. Please review.
           add-paths: 'platformio.ini'
+          branch: 'auto-update-${{matrix.lib}}-${{matrix.new_version}}'
+          commit-message: |
+            Dependabot Update
+
+            ${{matrix.lib}} has been updatet to version ${{matrix.new_version}}
+      - name: Create Pull Request
+        if: ${{ inputs.is_lib == true }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: 'Update Dependency ${{matrix.lib}} to version ${{matrix.new_version}}'
+          body: |
+            This auto-generated pull request updates Dependency ${{matrix.lib}} to ${{matrix.new_version}}. Please review.
+          add-paths: 'library.json'
           branch: 'auto-update-${{matrix.lib}}-${{matrix.new_version}}'
           commit-message: |
             Dependabot Update
