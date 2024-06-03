@@ -54,7 +54,7 @@ jobs:
                   print(f'{name}<<{delimiter}', file=fh)
                   print(value, file=fh)
                   print(delimiter, file=fh)
-          is_lib = ${{ inputs.is_lib }}
+          is_lib = "${{ inputs.is_lib }}" == "true"
           libarys = []
           if is_lib:
               with open("library.json", 'r', encoding="utf-8") as file_in:
