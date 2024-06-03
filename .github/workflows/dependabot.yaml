@@ -59,6 +59,9 @@ jobs:
           libarys = []
           with open("platformio.ini", 'r', encoding="utf-8") as file_in:
               text = file_in.read()
+          with open("library.json", 'r', encoding="utf-8") as file_in:
+              manifest = file_in.read()
+          dependencies = json.loads(manifest)["dependencies"]
           text = re.sub(r" ", r" ", text)
           text_processed = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
           for environment in text_processed:
