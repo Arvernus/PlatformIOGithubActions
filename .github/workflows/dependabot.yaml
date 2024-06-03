@@ -57,18 +57,20 @@ jobs:
                   print(delimiter, file=fh)
           is_lib = "${{ inputs.is_lib }}" == "true"
           libarys = []
-          if is_lib:
-              with open("library.json", 'r', encoding="utf-8") as file_in:
-                  library_data = json.load(file_in)
-              dependencies = library_data.get("dependencies", {})
-              libarys = [{"lib": lib, "current_version": version} for lib, version in dependencies.items()]
-          else:
-              with open("platformio.ini", 'r', encoding="utf-8") as file_in:
-                  text = file_in.read()
-              text = re.sub(r" ", r" ", text)
-              text_processed = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
-              for environment in text_processed:
-                  libs = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", environment[1])
+          with open("platformio.ini", 'r', encoding="utf-8") as file_in:
+              text = file_in.read()
+          text = re.sub(r" ", r" ", text)
+          text_processed = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
+          for environment in text_processed:
+              libs = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", environment[1])
+              if is_lib:
+                  for lib, version in dependencies:
+                      libarys.append({
+                          "lib": lib,
+                          "current_version": version,
+                          "env": str(environment[0])
+                      })
+              else:
                   for lib in libs:
                       this_lib = {}
                       splitted = re.split("@\^|#", lib)
@@ -79,7 +81,6 @@ jobs:
                       except:
                           None
                       libarys.append(this_lib)
-
           for lib in libarys:
               os.system(f"pio pkg install -l {lib["lib"]} -e {lib["env"]}")
           with open("platformio.ini", 'r', encoding="utf-8") as file_in:
