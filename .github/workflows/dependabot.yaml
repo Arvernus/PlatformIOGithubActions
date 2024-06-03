@@ -46,15 +46,22 @@ jobs:
           import os
           import uuid
           import json
+          def convert_bools(data):
+              if isinstance(data, bool):
+                  return "true" if data else "false"
+              elif isinstance(data, dict):
+                  return {k: convert_bools(v) for k, v in data.items()}
+              elif isinstance(data, list):
+                  return [convert_bools(item) for item in data]
+              else:
+                  return data
           def set_output(name, value):
-              if isinstance(value, bool):
-                  value = "true" if value else "false"
+              value = convert_bools(value)
               print(name, ": ", value)
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                   print(f'{name}={value}', file=fh)
           def set_multiline_output(name, value):
-              if isinstance(value, bool):
-                  value = "true" if value else "false"
+              value = convert_bools(value)
               print(name, ": ", value)
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                   delimiter = uuid.uuid1()
