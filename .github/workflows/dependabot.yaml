@@ -138,3 +138,7 @@ jobs:
             This auto-generated pull request updates ${{matrix.lib}} to ${{matrix.new_version}}. Please review.
           add-paths: 'platformio.ini'
           branch: 'auto-update-${{matrix.lib}}-${{matrix.new_version}}'
+          commit-message: |
+            Dependabot Update
+
+            ${{matrix.lib}} has been updatet to version ${{matrix.new_version}}
