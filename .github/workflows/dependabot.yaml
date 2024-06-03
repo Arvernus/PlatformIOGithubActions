@@ -47,9 +47,11 @@ jobs:
           import uuid
           import json
           def set_output(name, value):
+              print(name, ": ", value)
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                   print(f'{name}={value}', file=fh)
           def set_multiline_output(name, value):
+              print(name, ": ", value)
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                   delimiter = uuid.uuid1()
                   print(f'{name}<<{delimiter}', file=fh)
@@ -57,77 +59,79 @@ jobs:
                   print(delimiter, file=fh)
           is_lib = "${{ inputs.is_lib }}" == "true"
           libarys = []
-          with open("platformio.ini", 'r', encoding="utf-8") as file_in:
-              text = file_in.read()
+          os.system(f"pio project config --json-output > platformio.json")
+          with open("platformio.json", 'r', encoding="utf-8") as file_in:
+              config = json.loads(file_in.read())
           with open("library.json", 'r', encoding="utf-8") as file_in:
-              manifest = file_in.read()
-          dependencies = json.loads(manifest)["dependencies"]
-          text = re.sub(r" ", r" ", text)
-          text_processed = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
-          for environment in text_processed:
-              libs = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", environment[1])
-              if is_lib:
-                  try:
-                      for lib, version in dependencies:
-                          libarys.append({
-                          "lib": lib,
-                          "current_version": version,
-                          "env": str(environment[0])
-                      })
-                  except:
-                      for lib, version in dependencies.items():
-                          libarys.append({
-                              "lib": lib,
-                              "current_version": version,
-                              "env": str(environment[0])
-                          })
-              else:
-                  for lib in libs:
-                      this_lib = {}
-                      splitted = re.split("@\^|#", lib)
-                      this_lib["env"] = str(environment[0])
-                      this_lib["lib"] = splitted[0]
+              manifest = json.loads(file_in.read())
+          for member_i in config:
+              if member_i[0].startswith("env:"):
+                  env=member_i[0][len("env:"):]
+                  if is_lib:
+                      dependencies = manifest["dependencies"]
                       try:
-                          this_lib["current_version"] = splitted[1]
+                          # Handling array format
+                          for dependency in dependencies:
+                              if isinstance(dependency, dict):
+                                  lib = f"{dependency.get('owner', '')}/{dependency['name']}" if 'owner' in dependency else dependency['name']
+                                  version = dependency['version']
+                              else:
+                                  lib = dependency
+                                  version = dependencies[dependency]
+                              clean_version = re.sub(r'^[\^@]', '', version)
+                              libarys.append({
+                                  "lib": lib,
+                                  "current_version": clean_version,
+                                  "env": env
+                              })
                       except:
-                          None
-                      libarys.append(this_lib)
+                          # Handling object format
+                          for lib, version in dependencies.items():
+                              clean_version = re.sub(r'^[\^@]', '', version)
+                              libarys.append({
+                                  "lib": lib,
+                                  "current_version": clean_version,
+                                  "env": env
+                              })
+                  else:
+                      for member_j in member_i[1]:
+                          if member_j[0] == "lib_deps":
+                              for lib_text in member_j[1]:
+                                  lib_text_splitted = re.split("@\^|#", lib_text)
+                                  libarys.append({
+                                      "lib": lib_text_splitted[0],
+                                      "env": env,
+                                      "current_version": lib_text_splitted[1]
+                                  })
           for lib in libarys:
               os.system(f"pio pkg install -l {lib["lib"]} -e {lib["env"]}")
-          with open("platformio.ini", 'r', encoding="utf-8") as file_in:
-              text = file_in.read()
-          text = re.sub(r" ", r" ", text)
-          text_processed = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
-          for environment in text_processed:
-              libs = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", environment[1])
-              for lib in libs:
-                  splitted = re.split("@\^|#", lib)
-                  for lib_i, lib in enumerate(libarys):
-                      if lib["lib"] == splitted[0] and lib["env"] == str(environment[0]):
-                          try:
-                              libarys[lib_i]["new_version"] = splitted[1]
-                          except:
-                              None
-                          try:
-                              libarys[lib_i]["update"] = str(libarys[lib_i]["current_version"] != libarys[lib_i]["new_version"]).lower()
-                          except:
-                              None
-                          break
+          os.system(f"pio project config --json-output > platformio.json")
+          with open("platformio.json", 'r', encoding="utf-8") as file_in:
+              config = json.loads(file_in.read())
+          for member_i in config:
+              if member_i[0].startswith("env:"):
+                  env=member_i[0][len("env:"):]
+                  for member_j in member_i[1]:
+                      if member_j[0] == "lib_deps":
+                          for lib_text in member_j[1]:
+                              lib_text_splitted = re.split("@\^|#", lib_text)
+                              for lib_i, lib in enumerate(libarys):
+                                  if lib["lib"].lower() == lib_text_splitted[0].lower() and lib["env"] == env:
+                                      libarys[lib_i]["new_version"] = lib_text_splitted[1]
+                                      libarys[lib_i]["update"] = str(libarys[lib_i]["current_version"] != libarys[lib_i]["new_version"]) 
+                                      break
           matrix = {}
           matrix["include"] = []
           for lib in libarys:
-              if lib["update"] == "true":
+              if lib["update"]:
                   matrix["include"].append(lib)
                   
-          print("matrix: ", matrix)
-          set_output("matrix", str(matrix))
+          set_output("matrix", matrix)
 
-          print("libarys: ", libarys)
-          set_output("libarys", str(libarys))
+          set_output("libarys", libarys)
 
-          needs_update = "true" if len(matrix["include"]) > 0 else "false"
-          print("needs_update: ", needs_update)
-          set_output("needs_update", str(needs_update))
+          needs_update = len(matrix["include"]) > 0
+          set_output("needs_update", needs_update)
           
 
   dependabot:
