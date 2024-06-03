@@ -5,6 +5,11 @@ on:
     secrets:
       PLATFORMIO_AUTH_TOKEN:
         required: true
+    inputs:
+      is_lib:
+        required: false
+        type: boolean
+        default: false
 
 env:
   PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
@@ -19,6 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
+        if: ${{ inputs.is_lib == false }}
         with:
           path: |
             ~/.cache/pip
@@ -31,6 +37,7 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
       - name: Install PlatformIO Core
+        if: ${{ inputs.is_lib == false }}
         run: pio platform update
       - name: get enviroments and libs from file
         id: analyse_ini
@@ -48,23 +55,31 @@ jobs:
                   print(f'{name}<<{delimiter}', file=fh)
                   print(value, file=fh)
                   print(delimiter, file=fh)
-          with open("platformio.ini", 'r', encoding="utf-8") as file_in:
-              text = file_in.read()
+          is_lib = os.getenv('INPUT_IS_LIB', 'false').lower() == 'true'
           libarys = []
-          text = re.sub(r" ", r" ", text)
-          text_processed = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
-          for environment in text_processed:
-              libs = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", environment[1])
-              for lib in libs:
-                  this_lib = {}
-                  splitted = re.split("@\^|#", lib)
-                  this_lib["env"] = str(environment[0])
-                  this_lib["lib"] = splitted[0]
-                  try:
-                      this_lib["current_version"] = splitted[1]
-                  except:
-                      None
-                  libarys.append(this_lib)
+          if is_lib:
+              with open("library.json", 'r', encoding="utf-8") as file_in:
+                  library_data = json.load(file_in)
+              dependencies = library_data.get("dependencies", {})
+              libarys = [{"lib": lib, "current_version": version} for lib, version in dependencies.items()]
+          else:
+              with open("platformio.ini", 'r', encoding="utf-8") as file_in:
+                  text = file_in.read()
+              text = re.sub(r" ", r" ", text)
+              text_processed = re.findall(r"\[\s*env:(.*?)].*?lib_deps *= *(.*?)\n[^\s].*?", text, flags=re.DOTALL)
+              for environment in text_processed:
+                  libs = re.findall(r"\n\s+([^l\s][^i\s][^b\s][^\s]+)", environment[1])
+                  for lib in libs:
+                      this_lib = {}
+                      splitted = re.split("@\^|#", lib)
+                      this_lib["env"] = str(environment[0])
+                      this_lib["lib"] = splitted[0]
+                      try:
+                          this_lib["current_version"] = splitted[1]
+                      except:
+                          None
+                      libarys.append(this_lib)
+
           for lib in libarys:
               os.system(f"pio pkg install -l {lib["lib"]} -e {lib["env"]}")
           with open("platformio.ini", 'r', encoding="utf-8") as file_in:
