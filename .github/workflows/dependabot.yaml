@@ -130,7 +130,7 @@ jobs:
                               for lib_i, lib in enumerate(libarys):
                                   if lib["lib"].lower() == lib_text_splitted[0].lower() and lib["env"] == env:
                                       libarys[lib_i]["new_version"] = lib_text_splitted[1]
-                                      libarys[lib_i]["update"] = str(libarys[lib_i]["current_version"] != libarys[lib_i]["new_version"]) 
+                                      libarys[lib_i]["update"] = libarys[lib_i]["current_version"] != libarys[lib_i]["new_version"]
                                       break
           matrix = {}
           matrix["include"] = []
