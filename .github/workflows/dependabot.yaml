@@ -110,6 +110,8 @@ jobs:
                           if member_j[0] == "lib_deps":
                               for lib_text in member_j[1]:
                                   lib_text_splitted = re.split("@\^|#", lib_text)
+                                  if len(lib_text_splitted) == 1:
+                                      lib_text_splitted.append("*") 
                                   libarys.append({
                                       "lib": lib_text_splitted[0],
                                       "env": env,
