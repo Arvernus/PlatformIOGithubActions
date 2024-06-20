@@ -75,6 +75,12 @@ jobs:
           value: "${{ needs.setup.outputs.version }}"
           path: library.json
           commit: false
+      - name: Instal simavr
+        run: |
+          git clone https://github.com/buserror/simavr/
+          cd simavr
+          make
+          cd
       - name: Cache pip
         uses: actions/cache@v2
         with:
