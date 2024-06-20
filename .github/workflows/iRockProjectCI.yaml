@@ -88,6 +88,12 @@ jobs:
           value: "${{ needs.setup.outputs.version }}"
           path: project.json
           commit: false
+      - name: Instal simavr
+        run: |
+          git clone https://github.com/buserror/simavr/
+          cd simavr
+          make
+          cd
       - uses: actions/cache@v3
         with:
           path: |
