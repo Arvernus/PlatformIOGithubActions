@@ -119,7 +119,7 @@ jobs:
           echo "testfiles=$(find test -name *.cpp | xargs)" >> $GITHUB_OUTPUT
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
-        run: pio test
+        run: pio test --without-uploading
       - name: Run PlatformIO Build instead of Test
         if: ${{steps.test_files.outputs.testfiles == ''}}
         run: pio run
