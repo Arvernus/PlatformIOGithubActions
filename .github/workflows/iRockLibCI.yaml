@@ -83,6 +83,7 @@ jobs:
           cd simavr
           sudo make install RELEASE=1
           cd
+          sudo usermod -a -G dialout $USER
       - name: Cache pip
         uses: actions/cache@v2
         with:
