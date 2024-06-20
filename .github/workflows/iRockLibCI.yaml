@@ -78,7 +78,7 @@ jobs:
       - name: Instal simavr
         run: |
           sudo apt-get update
-          sudo apt-get install libelf-dev gcc-avr avr-libc
+          sudo apt-get install gcc-avr avr-libc libglu1-mesa-dev freeglut3-dev
           git clone https://github.com/buserror/simavr/
           cd simavr
           sudo make install RELEASE=1
