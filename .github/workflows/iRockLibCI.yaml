@@ -110,7 +110,7 @@ jobs:
       - name: Run Check first
         run: pio check
       - name: LD-Path
-        run: echo "env" >> $GITHUB_OUTPUT
+        run: echo "$LD_LIBRARY_PATH"
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
         run: pio test -vvv --without-uploading
