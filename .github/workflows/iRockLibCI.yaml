@@ -136,6 +136,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install gcc make avr-libc libncurses5 libtinfo5 libncursesw5
+          sudo chmod +x /usr/local/bin/simavr
       - name: Cache pip
         uses: actions/cache@v2
         with:
