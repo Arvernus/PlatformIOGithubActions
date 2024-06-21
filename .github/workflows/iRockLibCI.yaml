@@ -117,6 +117,51 @@ jobs:
           pio test --without-uploading
       - name: Validate lib json
         run: pio package pack
+    
+  testMac:
+    name: Test Builds with Mac
+    runs-on: macos-latest
+    needs: [setup]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Modify library.json
+        if: ${{needs.setup.outputs.up_version == 'true'}}
+        uses: maxgfr/actions-change-json@main
+        with:
+          key: "version"
+          value: "${{ needs.setup.outputs.version }}"
+          path: library.json
+          commit: false
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+      - name: get test files
+        id: test_files
+        run: |
+          echo "testfiles=$(find test -name *.cpp | xargs)" >> $GITHUB_OUTPUT
+      - name: Run PlatformIO Test
+        if: ${{steps.test_files.outputs.testfiles != ''}}
+        run: |
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib"
+          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+          pio test --without-uploading
+      - name: Validate lib json
+        run: pio package pack
 
   build:
     if: ${{needs.setup.outputs.pullrequest_end == 'true'}}
