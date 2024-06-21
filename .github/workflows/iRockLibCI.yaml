@@ -115,7 +115,10 @@ jobs:
           echo "$LD_LIBRARY_PATH"
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
-        run: pio test -vvv --without-uploading
+        run: |
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH;/usr/local/lib"
+          echo "$LD_LIBRARY_PATH"
+          pio test -vvv --without-uploading
       - name: Validate lib json
         run: pio package pack
 
