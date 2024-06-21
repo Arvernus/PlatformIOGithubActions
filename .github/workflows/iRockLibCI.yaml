@@ -133,7 +133,9 @@ jobs:
           path: library.json
           commit: false
       - name: simavr Nutzung vorbereiten
-        run: sudo apt install libncurses5 libtinfo5 libncursesw5
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcc make avr-libc libncurses5 libtinfo5 libncursesw5
       - name: Cache pip
         uses: actions/cache@v2
         with:
