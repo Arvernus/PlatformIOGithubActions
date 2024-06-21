@@ -119,8 +119,8 @@ jobs:
         run: pio package pack
     
   testMac:
-    name: Test Builds with Mac
-    runs-on: macos-latest
+    name: Test Builds with Linux
+    runs-on: ubuntu-latest
     needs: [setup]
     steps:
       - uses: actions/checkout@v4
