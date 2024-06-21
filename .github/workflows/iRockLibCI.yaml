@@ -109,6 +109,8 @@ jobs:
           echo "testfiles=$(find test -name *.cpp | xargs)" >> $GITHUB_OUTPUT
       - name: Run Check first
         run: pio check
+      - name: LD-Path
+        run: echo "env" >> $GITHUB_OUTPUT
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
         run: pio test -vvv --without-uploading
