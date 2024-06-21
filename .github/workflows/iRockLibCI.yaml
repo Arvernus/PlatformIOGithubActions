@@ -111,7 +111,7 @@ jobs:
         run: pio check
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
-        run: pio test --without-uploading
+        run: pio test -vvv --without-uploading
       - name: Validate lib json
         run: pio package pack
 
