@@ -120,7 +120,7 @@ jobs:
     
   testMac:
     name: Test Builds with Linux
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [setup]
     steps:
       - uses: actions/checkout@v4
@@ -132,6 +132,8 @@ jobs:
           value: "${{ needs.setup.outputs.version }}"
           path: library.json
           commit: false
+      - name: simavr Nutzung vorbereiten
+        run: sudo apt install libncurses5 libtinfo5 libncursesw5
       - name: Cache pip
         uses: actions/cache@v2
         with:
