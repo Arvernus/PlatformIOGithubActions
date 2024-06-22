@@ -10,13 +10,13 @@ on:
     secrets:
       PLATFORMIO_AUTH_TOKEN:
         required: true
-      WOKWI_AUTH_TOKEN:
+      WOKWI_CLI_TOKEN:
         required: false
       
 env:
   PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
   CI: true
-  WOKWI_AUTH_TOKEN: ${{ secrets.WOKWI_AUTH_TOKEN }}
+  WOKWI_CLI_TOKEN: ${{ secrets.WOKWI_CLI_TOKEN }}
   
 jobs:
   setup:
@@ -80,7 +80,7 @@ jobs:
           path: library.json
           commit: false
       - name: Install wokwi
-        if: ${{ env.WOKWI_AUTH_TOKEN != '' }}
+        if: ${{ env.WOKWI_CLI_TOKEN != '' }}
         run: |
           curl -L https://wokwi.com/ci/install.sh | sh
       - name: Cache pip
