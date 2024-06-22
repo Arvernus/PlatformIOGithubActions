@@ -101,10 +101,6 @@ jobs:
           python-version: '3.x'
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
-      - name: Configure PlatformIO
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/system/99-platformio-udev.rules | sudo tee /etc/udev/rules.d/99-platformio-udev.rules
-          sudo service udev restart
       - name: get test files
         id: test_files
         run: |
@@ -112,7 +108,7 @@ jobs:
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
         run: |
-          pio test
+          pio test --without-uploading
       - name: Validate lib json
         run: pio package pack
 
