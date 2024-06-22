@@ -132,12 +132,6 @@ jobs:
           value: "${{ needs.setup.outputs.version }}"
           path: library.json
           commit: false
-      - name: simavr Nutzung vorbereiten
-        run: |
-          sudo apt-get update
-          sudo apt-get install gcc make avr-libc libncurses5 libtinfo5 libncursesw5
-          which simavr
-          sudo chmod +x /usr/local/bin/simavr
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -163,9 +157,7 @@ jobs:
       - name: Run PlatformIO Test
         if: ${{steps.test_files.outputs.testfiles != ''}}
         run: |
-          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib"
-          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
-          pio test --without-uploading
+          pio test --without-uploading -vvv
       - name: Validate lib json
         run: pio package pack
 
