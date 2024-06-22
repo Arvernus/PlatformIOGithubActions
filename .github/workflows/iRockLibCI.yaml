@@ -79,8 +79,8 @@ jobs:
           value: "${{ needs.setup.outputs.version }}"
           path: library.json
           commit: false
-      - name: install wokwi
-        if: ${{ secrets.WOKWI_CLI_TOKEN != '' }}
+      - name: Install wokwi
+        if: ${{ env.WOKWI_CLI_TOKEN != '' }}
         run: |
           curl -L https://wokwi.com/ci/install.sh | sh
       - name: Cache pip
