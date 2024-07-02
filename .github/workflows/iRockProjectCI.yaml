@@ -173,7 +173,7 @@ jobs:
           release_path = './release'
           os.makedirs(release_path, exist_ok=True)
 
-          version = os.getenv('VERSION')
+          version = "${{ needs.setup.outputs.version }}"
 
           for root, dirs, files in os.walk(artifacts_path):
               for dir_name in dirs:
