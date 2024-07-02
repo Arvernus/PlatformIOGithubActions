@@ -35,7 +35,7 @@ jobs:
           key: ${{ runner.os }}-pio
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.x'
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
       - name: get enviroments from file
@@ -100,7 +100,7 @@ jobs:
           key: ${{ runner.os }}-pio
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.x'
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
       - name: Define Softwareversion
@@ -173,13 +173,15 @@ jobs:
           release_path = './release'
           os.makedirs(release_path, exist_ok=True)
 
+          version = os.getenv('VERSION')
+
           for root, dirs, files in os.walk(artifacts_path):
               for dir_name in dirs:
                   dir_path = os.path.join(root, dir_name)
                   elf_files = glob.glob(os.path.join(dir_path, '*.elf'))
                   if elf_files:
                       for elf_file in elf_files:
-                          new_name = os.path.join(release_path, f'{dir_name}.elf')
+                          new_name = os.path.join(release_path, f'iRockOS-{version}-{dir_name}.elf')
                           shutil.copy(elf_file, new_name)
                           print(f'Copied {elf_file} to {new_name}')
       - name: Create release
