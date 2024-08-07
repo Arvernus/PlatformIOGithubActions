@@ -188,20 +188,14 @@ jobs:
 
           version = "${{ matrix.new_version }}"
           lib = "${{ matrix.lib }}"
-          for dependency_i, dependency in enumerate(library_data['dependencies']):
-              if isinstance(dependency, dict):
+          if isinstance(library_data['dependencies'], dict):
+              library_data['dependencies'][lib] = version
+          else:
+              for dependency_i, dependency in enumerate(library_data['dependencies']):
                   if 'owner' in dependency:
                       if library_data['dependencies'][dependency_i]['owner'] == '${{ matrix.owner }}' and library_data['dependencies'][dependency_i]['name'] == '${{ matrix.name }}':
                           library_data['dependencies'][dependency_i]['version'] = version
                           break
-                  else:
-                      if library_data['dependencies'][dependency_i]['name'] == '${{ matrix.name }}':
-                          library_data['dependencies'][dependency_i]['version'] = version
-                          break
-              else:
-                  if dependency == '${{ matrix.lib }}':
-                      library_data['dependencies'][dependency_i] = version
-                      break
                   
           with open('library.json', 'w', encoding='utf-8') as file:
               file.write(json.dumps(library_data, indent=2))
