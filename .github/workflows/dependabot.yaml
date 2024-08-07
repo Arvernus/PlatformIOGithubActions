@@ -89,11 +89,6 @@ jobs:
           with open("platformio.json", 'r', encoding="utf-8") as file_in:
               config = json.loads(file_in.read())
 
-          # Wenn es sich um eine Bibliothek handelt, die Abhängigkeiten aus der "library.json" laden
-          if is_lib:
-              with open("library.json", 'r', encoding="utf-8") as file_in:
-                  manifest = json.loads(file_in.read())
-
           # Durch die Konfigurationselemente iterieren
           for member_i in config:
               if member_i[0].startswith("env:"):
@@ -111,25 +106,30 @@ jobs:
                                   "env": env,
                                   "current_version": lib_text_splitted[1]
                               })
-          if isinstance(manifest['dependencies'], dict):
-              for lib, version in manifest['dependencies'].items():
-                  clean_version = re.sub(r'^[\^@]', '', version)
-                  libarys.append({
-                      "lib": lib,
-                      "current_version": clean_version,
-                      "env": None
-                  })
-          else:
-              for dependency in manifest['dependencies']:
-                  if 'owner' in dependency:
-                      lib = dependency['owner'] + "/" + dependency['name']
-                      version = dependency['version']
+                              
+          # Wenn es sich um eine Bibliothek handelt, die Abhängigkeiten aus der "library.json" laden
+          if is_lib:
+              with open("library.json", 'r', encoding="utf-8") as file_in:
+                  manifest = json.loads(file_in.read())
+              if isinstance(manifest['dependencies'], dict):
+                  for lib, version in manifest['dependencies'].items():
                       clean_version = re.sub(r'^[\^@]', '', version)
                       libarys.append({
                           "lib": lib,
                           "current_version": clean_version,
                           "env": None
                       })
+              else:
+                  for dependency in manifest['dependencies']:
+                      if 'owner' in dependency:
+                          lib = dependency['owner'] + "/" + dependency['name']
+                          version = dependency['version']
+                          clean_version = re.sub(r'^[\^@]', '', version)
+                          libarys.append({
+                              "lib": lib,
+                              "current_version": clean_version,
+                              "env": None
+                          })
 
           # Bibliotheken installieren
           for lib in libarys:
