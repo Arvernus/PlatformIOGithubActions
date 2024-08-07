@@ -98,50 +98,43 @@ jobs:
           for member_i in config:
               if member_i[0].startswith("env:"):
                   env = member_i[0][len("env:"):]
-                  if is_lib:
-                      # Abhängigkeiten aus der "library.json" laden und verarbeiten
-                      dependencies = manifest["dependencies"]
-                      try:
-                          # Behandlung des Array-Formats
-                          for dependency in dependencies:
-                              if isinstance(dependency, dict):
-                                  lib = f"{dependency.get('owner', '')}/{dependency['name']}" if 'owner' in dependency else dependency['name']
-                                  version = dependency['version']
-                              else:
-                                  lib = dependency
-                                  version = dependencies[dependency]
-                              clean_version = re.sub(r'^[\^@]', '', version)
+                  # Durch die Konfigurationselemente der Umgebung iterieren
+                  for member_j in member_i[1]:
+                      if member_j[0] == "lib_deps":
+                          # Durch die Bibliotheksabhängigkeiten iterieren
+                          for lib_text in member_j[1]:
+                              lib_text_splitted = re.split("@\^|#", lib_text)
+                              if len(lib_text_splitted) == 1:
+                                  lib_text_splitted.append("*")
                               libarys.append({
-                                  "lib": lib,
-                                  "current_version": clean_version,
-                                  "env": env
+                                  "lib": lib_text_splitted[0],
+                                  "env": env,
+                                  "current_version": lib_text_splitted[1]
                               })
-                      except:
-                          # Behandlung des Objektformats
-                          for lib, version in dependencies.items():
-                              clean_version = re.sub(r'^[\^@]', '', version)
-                              libarys.append({
-                                  "lib": lib,
-                                  "current_version": clean_version,
-                                  "env": env
-                              })
-                  else:
-                      # Durch die Konfigurationselemente der Umgebung iterieren
-                      for member_j in member_i[1]:
-                          if member_j[0] == "lib_deps":
-                              # Durch die Bibliotheksabhängigkeiten iterieren
-                              for lib_text in member_j[1]:
-                                  lib_text_splitted = re.split("@\^|#", lib_text)
-                                  if len(lib_text_splitted) == 1:
-                                      lib_text_splitted.append("*")
-                                  libarys.append({
-                                      "lib": lib_text_splitted[0],
-                                      "env": env,
-                                      "current_version": lib_text_splitted[1]
-                                  })
+          if isinstance(manifest['dependencies'], dict):
+              for lib, version in manifest['dependencies'].items():
+                  clean_version = re.sub(r'^[\^@]', '', version)
+                  libarys.append({
+                      "lib": lib,
+                      "current_version": clean_version,
+                      "env": None
+                  })
+          else:
+              for dependency in manifest['dependencies']:
+                  if 'owner' in dependency:
+                      lib = dependency['owner'] + "/" + dependency['name']
+                      version = dependency['version']
+                      clean_version = re.sub(r'^[\^@]', '', version)
+                      libarys.append({
+                          "lib": lib,
+                          "current_version": clean_version,
+                          "env": None
+                      })
 
           # Bibliotheken installieren
           for lib in libarys:
+              if lib["env"] is None:
+                  os.system(f"pio pkg install -l {lib['lib']}")
               os.system(f"pio pkg install -l {lib['lib']} -e {lib['env']}")
 
           # Konfigurationsdatei "platformio.json" erneut laden
@@ -165,6 +158,11 @@ jobs:
                                       libarys[lib_i]["new_version"] = lib_text_splitted[1]
                                       libarys[lib_i]["update"] = libarys[lib_i]["current_version"] != libarys[lib_i]["new_version"]
                                       break
+                                  if lib["lib"].lower() == lib_text_splitted[0].lower() and lib["env"] is None:
+                                      libarys[lib_i]["new_version"] = lib_text_splitted[1]
+                                      libarys[lib_i]["update"] = libarys[lib_i]["current_version"] != libarys[lib_i]["new_version"]
+                                      break
+                                  
 
           # Matrix für die Aktualisierung erstellen
           matrix = {}
