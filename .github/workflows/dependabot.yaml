@@ -229,14 +229,13 @@ jobs:
           with open('library.json', 'w', encoding='utf-8') as file:
               file.write(json.dumps(library_data, indent=2))
       - name: Create Pull Request
-        if: ${{ inputs.is_lib == false }}
         uses: peter-evans/create-pull-request@v6
         with:
-          title: 'Update ${{matrix.lib}} to version ${{matrix.new_version}}'
+          title: 'Update ${{matrix.lib}} in env ${{matrix.new_version}}'
           body: |
-            This auto-generated pull request updates ${{matrix.lib}} to ${{matrix.new_version}}. Please review.
+            This auto-generated pull request updates ${{matrix.lib}} in Envirnonment ${{matrix.env}} to ${{matrix.new_version}}. Please review.
           add-paths: 'platformio.ini'
-          branch: 'auto-update-${{matrix.lib}}-${{matrix.new_version}}'
+          branch: 'auto-update-${{matrix.env}}-${{matrix.lib}}-${{matrix.new_version}}'
           commit-message: |
             Dependabot Update
 
@@ -250,8 +249,7 @@ jobs:
             This auto-generated pull request updates Dependency ${{matrix.lib}} to ${{matrix.new_version}}. Please review.
           add-paths: |
             library.json
-            platformio.ini
-          branch: 'auto-update-${{matrix.lib}}-${{matrix.new_version}}'
+          branch: 'auto-update-dependency-${{matrix.lib}}-${{matrix.new_version}}'
           commit-message: |
             Dependabot Update
 
