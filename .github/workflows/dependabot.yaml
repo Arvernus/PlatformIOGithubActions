@@ -230,7 +230,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          title: 'Update ${{matrix.lib}} in env ${{matrix.env}} to version ${{matrix.new_version}}'
+          title: 'Update ${{matrix.lib}} in Envirnonment ${{matrix.env}} to version ${{matrix.new_version}}'
           body: |
             This auto-generated pull request updates ${{matrix.lib}} in Envirnonment ${{matrix.env}} to ${{matrix.new_version}}. Please review.
           add-paths: 'platformio.ini'
