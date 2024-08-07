@@ -186,7 +186,7 @@ jobs:
           with open("library.json", 'r', encoding="utf-8") as file_in:
               library_data = json.loads(file_in.read())
 
-          version = "${{ matrix.new_version }}"
+          version = "^${{ matrix.new_version }}"
           lib = "${{ matrix.lib }}"
           if isinstance(library_data['dependencies'], dict):
               library_data['dependencies'][lib] = version
