@@ -47,6 +47,8 @@ jobs:
           import os
           import uuid
           import json
+
+          # Funktion zum Konvertieren von booleschen Werten in Zeichenketten
           def convert_bools(data):
               if isinstance(data, bool):
                   return "true" if data else "false"
@@ -56,11 +58,15 @@ jobs:
                   return [convert_bools(item) for item in data]
               else:
                   return data
+
+          # Funktion zum Setzen eines Ausgabewerts
           def set_output(name, value):
               value = convert_bools(value)
               print(name, ": ", value)
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                   print(f'{name}={value}', file=fh)
+
+          # Funktion zum Setzen eines mehrzeiligen Ausgabewerts
           def set_multiline_output(name, value):
               value = convert_bools(value)
               print(name, ": ", value)
@@ -69,21 +75,34 @@ jobs:
                   print(f'{name}<<{delimiter}', file=fh)
                   print(value, file=fh)
                   print(delimiter, file=fh)
+
+          # Überprüfen, ob es sich um eine Bibliothek handelt
           is_lib = "${{ inputs.is_lib }}" == "true"
+
+          # Eine leere Liste für Bibliotheken erstellen
           libarys = []
+
+          # Konfigurationsdatei "platformio.json" erstellen
           os.system(f"pio project config --json-output > platformio.json")
+
+          # Konfigurationsdatei "platformio.json" öffnen und laden
           with open("platformio.json", 'r', encoding="utf-8") as file_in:
               config = json.loads(file_in.read())
+
+          # Wenn es sich um eine Bibliothek handelt, die Abhängigkeiten aus der "library.json" laden
           if is_lib:
               with open("library.json", 'r', encoding="utf-8") as file_in:
                   manifest = json.loads(file_in.read())
+
+          # Durch die Konfigurationselemente iterieren
           for member_i in config:
               if member_i[0].startswith("env:"):
-                  env=member_i[0][len("env:"):]
+                  env = member_i[0][len("env:"):]
                   if is_lib:
+                      # Abhängigkeiten aus der "library.json" laden und verarbeiten
                       dependencies = manifest["dependencies"]
                       try:
-                          # Handling array format
+                          # Behandlung des Array-Formats
                           for dependency in dependencies:
                               if isinstance(dependency, dict):
                                   lib = f"{dependency.get('owner', '')}/{dependency['name']}" if 'owner' in dependency else dependency['name']
@@ -98,7 +117,7 @@ jobs:
                                   "env": env
                               })
                       except:
-                          # Handling object format
+                          # Behandlung des Objektformats
                           for lib, version in dependencies.items():
                               clean_version = re.sub(r'^[\^@]', '', version)
                               libarys.append({
@@ -107,27 +126,36 @@ jobs:
                                   "env": env
                               })
                   else:
+                      # Durch die Konfigurationselemente der Umgebung iterieren
                       for member_j in member_i[1]:
                           if member_j[0] == "lib_deps":
+                              # Durch die Bibliotheksabhängigkeiten iterieren
                               for lib_text in member_j[1]:
                                   lib_text_splitted = re.split("@\^|#", lib_text)
                                   if len(lib_text_splitted) == 1:
-                                      lib_text_splitted.append("*") 
+                                      lib_text_splitted.append("*")
                                   libarys.append({
                                       "lib": lib_text_splitted[0],
                                       "env": env,
                                       "current_version": lib_text_splitted[1]
                                   })
+
+          # Bibliotheken installieren
           for lib in libarys:
-              os.system(f"pio pkg install -l {lib["lib"]} -e {lib["env"]}")
+              os.system(f"pio pkg install -l {lib['lib']} -e {lib['env']}")
+
+          # Konfigurationsdatei "platformio.json" erneut laden
           os.system(f"pio project config --json-output > platformio.json")
           with open("platformio.json", 'r', encoding="utf-8") as file_in:
               config = json.loads(file_in.read())
+
+          # Durch die Konfigurationselemente iterieren
           for member_i in config:
               if member_i[0].startswith("env:"):
-                  env=member_i[0][len("env:"):]
+                  env = member_i[0][len("env:"):]
                   for member_j in member_i[1]:
                       if member_j[0] == "lib_deps":
+                          # Durch die Bibliotheksabhängigkeiten iterieren
                           for lib_text in member_j[1]:
                               lib_text_splitted = re.split("@\^|#", lib_text)
                               if len(lib_text_splitted) == 1:
@@ -137,20 +165,21 @@ jobs:
                                       libarys[lib_i]["new_version"] = lib_text_splitted[1]
                                       libarys[lib_i]["update"] = libarys[lib_i]["current_version"] != libarys[lib_i]["new_version"]
                                       break
+
+          # Matrix für die Aktualisierung erstellen
           matrix = {}
           matrix["include"] = []
           for lib in libarys:
-              if lib["update"]:
+              update = lib.get("update", False)
+              if update:
                   matrix["include"].append(lib)
-                  
+
+          # Ausgabewerte setzen
           set_output("matrix", matrix)
-
           set_output("libarys", libarys)
-
           needs_update = len(matrix["include"]) > 0
           set_output("needs_update", needs_update)
           
-
   dependabot:
     name: Dependabot
     runs-on: ubuntu-latest
