@@ -200,8 +200,10 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install PlatformIO Core
+        if: ${{ matrix.env != '*' }}
         run: pip install --upgrade platformio
       - name: Install PlatformIO Core
+        if: ${{ matrix.env != '*' }}
         run: pio pkg update
       - name: Update Library
         if: ${{ matrix.env != '*' }}
@@ -229,6 +231,7 @@ jobs:
           with open('library.json', 'w', encoding='utf-8') as file:
               file.write(json.dumps(library_data, indent=2))
       - name: Create Pull Request
+        if: ${{ matrix.env != '*' }}
         uses: peter-evans/create-pull-request@v6
         with:
           title: 'Update ${{matrix.name}} in Envirnonment ${{matrix.env}} to version ${{matrix.new_version}}'
