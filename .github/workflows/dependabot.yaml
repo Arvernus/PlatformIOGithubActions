@@ -244,7 +244,7 @@ jobs:
 
             ${{matrix.lib}} has been updatet to version ${{matrix.new_version}}
       - name: Create Pull Request
-        if: ${{ inputs.is_lib == true }}
+        if: ${{ inputs.is_lib == true && matrix.env == '*' }}
         uses: peter-evans/create-pull-request@v6
         with:
           title: 'Update Dependency ${{matrix.name}} to version ${{matrix.new_version}}'
