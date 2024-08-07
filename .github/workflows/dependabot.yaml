@@ -168,6 +168,8 @@ jobs:
           matrix = {}
           matrix["include"] = []
           for lib in libarys:
+              if lib["env"] is None:
+                  lib["env"] = "*"
               update = lib.get("update", False)
               if update:
                   matrix["include"].append(lib)
@@ -202,9 +204,10 @@ jobs:
       - name: Install PlatformIO Core
         run: pio pkg update
       - name: Update Library
+        if: ${{ matrix.env != '*' }}
         run: pio pkg install -l ${{ matrix.lib }} -e ${{ matrix.env }}
       - name: Update Dependency
-        if: ${{ inputs.is_lib == true }}
+        if: ${{ inputs.is_lib == true && matrix.env == '*' }}
         shell: python
         run: |
           import json
