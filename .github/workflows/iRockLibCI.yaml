@@ -158,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [setup, build]
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
       - name: Cache pip
         uses: actions/cache@v2
         with:
