@@ -33,7 +33,7 @@ jobs:
             ~/.cache/pip
             ~/.platformio/.cache
           key: ${{ runner.os }}-pio
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Install PlatformIO Core
@@ -98,7 +98,7 @@ jobs:
             ~/.cache/pip
             ~/.platformio/.cache
           key: ${{ runner.os }}-pio
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Install PlatformIO Core
@@ -135,7 +135,7 @@ jobs:
             ~/.cache/pip
             ~/.platformio/.cache
           key: ${{ runner.os }}-pio
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Install PlatformIO Core
@@ -159,7 +159,7 @@ jobs:
         with:
           path: ./artifacts
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Copy and Rename ELF files
