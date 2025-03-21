@@ -27,7 +27,7 @@ jobs:
         with:
           path: "project.json"
           prop_path: "version"
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
@@ -92,7 +92,7 @@ jobs:
         if: ${{ env.WOKWI_CLI_TOKEN != '' }}
         run: |
           curl -L https://wokwi.com/ci/install.sh | sh
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
@@ -129,7 +129,7 @@ jobs:
         environment: ${{ fromJSON(needs.setup.outputs.environments) }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
