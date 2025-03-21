@@ -232,7 +232,7 @@ jobs:
               file.write(json.dumps(library_data, indent=2))
       - name: Create Pull Request
         if: ${{ matrix.env != '*' }}
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           title: 'Update ${{matrix.name}} in Envirnonment ${{matrix.env}} to version ${{matrix.new_version}}'
           body: |
@@ -245,7 +245,7 @@ jobs:
             ${{matrix.lib}} has been updatet to version ${{matrix.new_version}}
       - name: Create Pull Request
         if: ${{ inputs.is_lib == true && matrix.env == '*' }}
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           title: 'Update Dependency ${{matrix.name}} to version ${{matrix.new_version}}'
           body: |
