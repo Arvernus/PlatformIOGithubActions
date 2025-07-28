@@ -5,6 +5,12 @@ on:
     secrets:
       PLATFORMIO_AUTH_TOKEN:
         required: true
+    inputs:
+      prerelease:
+        description: "Set to true to create a pre-release"
+        required: false
+        default: false
+        type: boolean
 
 env:
   PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
@@ -190,5 +196,6 @@ jobs:
           tag_name: ${{ needs.setup.outputs.version_tag }}
           generate_release_notes: true
           files: ./release/*.elf
+          prerelease: ${{ inputs.prerelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
