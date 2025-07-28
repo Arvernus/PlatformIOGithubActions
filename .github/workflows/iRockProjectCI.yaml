@@ -157,7 +157,7 @@ jobs:
         with:
           name: ${{ matrix.environment }}
           path: |
-            .pio/build/${{ matrix.environment }}/firmware.elf
+            .pio/build/${{ matrix.environment }}/firmware.bin
           if-no-files-found: error
 
   release:
@@ -173,7 +173,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Copy and Rename ELF files
+      - name: Copy and Rename BIN files
         shell: python
         run: |
           import os
@@ -189,18 +189,18 @@ jobs:
           for root, dirs, files in os.walk(artifacts_path):
               for dir_name in dirs:
                   dir_path = os.path.join(root, dir_name)
-                  elf_files = glob.glob(os.path.join(dir_path, '*.elf'))
-                  if elf_files:
-                      for elf_file in elf_files:
-                          new_name = os.path.join(release_path, f'iRockOS-{version}-{dir_name}.elf')
-                          shutil.copy(elf_file, new_name)
-                          print(f'Copied {elf_file} to {new_name}')
+                  bin_files = glob.glob(os.path.join(dir_path, '*.bin'))
+                  if bin_files:
+                      for bin_file in bin_files:
+                          new_name = os.path.join(release_path, f'iRockOS-{version}-{dir_name}.bin')
+                          shutil.copy(bin_file, new_name)
+                          print(f'Copied {bin_file} to {new_name}')
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.setup.outputs.version_tag }}
           generate_release_notes: true
-          files: ./release/*.elf
+          files: ./release/*.bin
           prerelease: ${{ inputs.prerelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
