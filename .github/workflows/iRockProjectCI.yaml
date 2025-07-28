@@ -55,14 +55,14 @@ jobs:
           echo version: ${{ steps.version.outputs.version }}
           echo up_version: ${{ steps.version.outputs.version != steps.version_file.outputs.prop}}
           echo pullrequest: ${{github.event_name == 'pull_request'}}
-          echo pullrequest_end: ${{github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref =='main'}}
+          echo pullrequest_end: ${{github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true}}
     outputs:
       environments: ${{ steps.environment_file.outputs.prop }}
       version_tag: ${{ steps.version.outputs.version_tag }}
       version: ${{ steps.version.outputs.version }}
       up_version: ${{ steps.version.outputs.version != steps.version_file.outputs.prop}}
       pullrequest: ${{github.event_name == 'pull_request'}}
-      pullrequest_end: ${{github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref =='main'}}
+      pullrequest_end: ${{github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true}}
 
   up_version:
     if: ${{ needs.setup.outputs.up_version == 'true' }}
